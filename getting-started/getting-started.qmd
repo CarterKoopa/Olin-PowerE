@@ -18,5 +18,52 @@ jupyter: python3
 2. Describe your engineering interests and experience
     - A lot of my engineering is really being a jack of all trades, master of none. I've dabbled in electronics (including some PCB and small circuit design on the Baja team), a bit of CAD and mechanical design, and in the software world too (I'm a CA for Software Design for the 2nd time this semester). I'm an ECE though and looking to bring the focus in a little bit more with this class. I don't have much experience in the power electronics world.
 3. What would you like to get our of this course?
-    - I would love to feel more like a "real" electrical engineer at the end of this course. I know this is more qualitative than anything, but the previous ECE classes at Olin really haven't done a lot to build this confidence or the knowledge that I feel I need to succeed in a technical interview or an internship/etc.
+    - I would love to feel more like a "real" electrical engineer at the end of this course. I know this is more qualitative than anything, but the previous ECE classes at Olin really haven't done a lot to build this confidence or the knowledge that I feel I need to succeed in a technical interview or an internship/etc. In terms of more strict technical skills, this would likely look like becoming more comfortable looking at power electronics-related schematics and being comfortable analyzing and talking about them. I would love to meet your goal aswell of being comfortable making a DC-DC converter.
+4. Which aspects of power electronics do you find interesting?
+    - Not sure I know enough about power electronics to answer this question! More broadly, I'm quite interested in infrastructure and large-scale systems, so I'm quite interested in learning everything I can about power and what it may look like outside the confines of a small PCB (even though I do recognize this will be a majority of this class).
+5. How might the field of power electronics help with environmental and social issues?
+     - Going back to my interests in infrastructure, we're at a pretty cool crossroads where the world is being electrified. From large-scale things, like reducing fossil-fuel energy reliance and making electric grids more climate change resilient, to individual scale things, like shifting to electric cars and providing greater equity in access to electricity and electronics, power electronics are becoming more present every day. From their increasing prevalence to a greater focus on efficiency, I think there's a lot of opportunity for positive change and impact through power and power electronics rather than innovating for the sake of innovation.
+
+---
+
+### First Explorations
+
+1. Provide an example of a mixed-signal circuit.
+    - A mixed-signal circuit is a circuit with both digital (on/off) and analog (variable signal, like voltage) circuits.
+    - An example of one such circuit would be a 
+2. What type of quantities are typically measured for the control and protection of power converters?
+    - Current is particularly important for power converters. The current can be measured in a variety of ways, such as through shunt resistors or hall effect sensors.
+    - Voltage is typically also necessary for a power converter, and it is typically measured using a resistive voltage divider.
+    - Temperature is also an important factor to ensure the safety of a circuit, given that power converts will never be perfectly efficient and will produce waste heat.
+3. What is the "loop" in loop shaping?
+    - The loop in loop shaping refers to the control loop that controls a given power converter (or anything else, for that matter). That loop is "shaped" in order to ensure the control system is meeting the necessary requirements for the system at hand, such as ensuring a given output voltage of a power converter.
+4. How does mechanical engineering apply to the design of power converters?
+    - Mechanical know-how is necessary for designing the packaging and physical assembly of the powerstage and other power converter components. For many applications, such as for automotive or consumer electronics, their are often just as stringent specifications for the packaging as there are for the actual function of the electronics which must be met.
+    - Further, some components of a power converter, such as the magnetics and inductors, often are purpose-build for a particular converter. Mechanical assembly, and therefore mechanical engineering knowledge, is therefore very important for creation and implementation.
+5. What purpose do inductors serve in power converters?
+    - Inductors are used to store energy in the inductor's magnetic field. Given inductors resist change to current, they store and discharge energy during upward and downward spikes to overall smooth sudden changes in circuit current and ensure a smoother/more consistent output.
+6. What is currently "all the rage" in the field of power electronics?
+    - Newer, non-silicon-based semiconductors are all the rage, mainly so-called "wide-bandgap" devices based on materials such as Gallium Nitride (GaN) and Silicon Carbide (SiC). The larger electron bandgap (the distance between the valence and conduction bands of electron orbitals, which (ELI5) determines the amount of necessary needed for an electron to move to the conduction band where it can move freely and create a current within the material) means that these semiconductors can handle stronger electric field, meaning they can operate at high temperatures and result in much less switching loss.
+7. Who is James Worden?
+    - James Worden is the co-founder of Solectric/Azure Dynamics. He is quoted on the Canvas page as saying the number one metric for assessing a power converter is efficiency, given that in order to be efficient, a power converter must be well-designed. 
+8. Why does the efficiency of a power converter matter?
+    - Higher-efficiency power converter are often more reliable, given that the increased mechanical stress caused by more thermal cycles in a less efficient, higher-heat-output can often lead to failure. Further, a more efficient power converted also means less thermal management in general is necessary.
+9. What are some of the key powerstage components?
+    - Power semiconductors, such as the switching transistors and passive diodes used in a power converter
+    - Magnetics, such as inductors and transformers used to transform or filter the input and output signal
+    - Capacitors, which are used to filter/smooth the signal and protect components
+    - Protective components, such as snubbers, which absorb voltage spikes and transients (short-term increases)
+10. List multiple ways of getting hurt or killed when working on a power converter
+    - They can shock you
+    - They can burn you
+    - You can bit hit with flying debris from assembly or failure
+    - End users (or the designers too) can be hurt from using the product incorrectly or after damage
+11. How do you plan on staying safe?
+    - Always wear safety glasses.
+    - Never touch lab hardware when the power is on.
+
+All above information comes from the Power Electronics map on Canvas, alongside these sources:
+- [Band Gap - EnergyEducation.ca](https://energyeducation.ca/encyclopedia/Band_gap)
+- [What is an inductor? - Coil Craft](https://www.coilcraft.com/en-us/edu/series/what-is-an-inductor/)
+- [Understanding the Role of Snubbers in Power Electronics - Knowles Precision Devices](https://blog.knowlescapacitors.com/blog/understanding-the-crucial-role-of-snubber-capacitors-in-power-electronics)
 
