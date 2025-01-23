@@ -1,0 +1,22 @@
+---
+title: Getting Started Assignment
+jupyter: python3
+---
+
+
+#### Power Electronics
+
+#### Carter Harris
+
+---
+
+
+### General Thoughts & Questions
+
+1. What are your preferred pronouns and would you like to be called by a different name?
+    - Carter (my legal name), he/him
+2. Describe your engineering interests and experience
+    - A lot of my engineering is really being a jack of all trades, master of none. I've dabbled in electronics (including some PCB and small circuit design on the Baja team), a bit of CAD and mechanical design, and in the software world too (I'm a CA for Software Design for the 2nd time this semester). I'm an ECE though and looking to bring the focus in a little bit more with this class. I don't have much experience in the power electronics world.
+3. What would you like to get our of this course?
+    - I would love to feel more like a "real" electrical engineer at the end of this course. I know this is more qualitative than anything, but the previous ECE classes at Olin really haven't done a lot to build this confidence or the knowledge that I feel I need to succeed in a technical interview or an internship/etc.
+
