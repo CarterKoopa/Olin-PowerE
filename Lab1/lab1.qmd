@@ -1,0 +1,73 @@
+---
+title: 'Lab 1: Power Converter Circuit Simulation'
+jupyter: python3
+---
+
+
+### Carter Harris
+
+---
+
+
+### Initial Circuit Diagram
+
+![Buck converter example circuit](images/circuit1.png)
+
+### Initial Scope Readings
+![Triple scope plot](images/scope1.png)
+![First single scope plot](images/scope2.png)
+
+#### Q1: For each waveform, determine the peaks and average.
+- **Input Current:** The peak current is 10A. The average value is 1A.
+- **Inductor Current:** The peak and average is 10A (as it is constant and connected to a current source).
+- **Output Voltage:** The peak and average are each 10A.
+- **Voltage Across Inductor:**: The peak is 90V, while the average is 0V.
+
+#### Q2: What waveforms have a small (or no) ripple versus large ripple?
+- **No Ripple:** Both inductor current and output voltage are constant values. 
+- **Larger Ripple:** The input current has a larger ripple, with a square wave modulating between 0 and 10 amps. The voltage across the current source has the largest ripple ranging from -10 volts to 90 volts.
+
+#### Q3: Which components supply power and which components dissipate power?
+- **Supply Power:** The voltage source and current source are supplying power.
+- **Dissipate Power:** The resistor dissipates power. As the diode, switch, and all meters are ideal, they do not dissipate any power and act as purely passive components.
+
+---
+
+
+Now, the simulation is re-ran after replacing the current source with an inductor with an inductance of 1 mH.
+
+
+![Buck converter with an inductor](images/circuit2.png)
+
+![Scope plots with inductor](images/scope3.png)
+![Scope plots with inductor 2](images/scope4.png)
+
+
+#### Q4: How are the waveforms different? What do they have in common with the prior simulation?
+
+- The inductor current behaves quite differently in this configuration since it is not just connected to a constant source. Rather, the inductor works to resist the change in current, so there is a charge-up period as the inductor builds up a magnetic field before reaching steady state at the same 10A.
+- Given there is a constant resistance with the load, the voltage follows this current charge-up curve before reaching steady state at 10V.
+- The steady state of each simulation is the same with the inductor current reaching 10A and the output voltage reaching 10V.
+- There is slightly more ripple in each waveform than in the first simulation.
+
+#### Q5: After how much time does the circuit reach periodic steady state?
+The simulation reaches periodic steady state at around 0.004 seconds (0.4 x 10^-2).
+
+#### Q6: What is the average voltage across the inductor in periodic steady-state?
+The average voltage across the inductor is very low - about 0.0005 volts.
+
+#### Q7: What is the voltage conversion ratio for D=10% and D=50%
+Based on an input voltage of 100V:
+- For D=10%, the voltage conversion ratio is 1/10 and the output voltage is 10V.
+- For D=50%, the voltage conversion ratio is 1/2 and the output voltage is 50V.
+
+---
+
+Now, the inductance is lowered to 10 $\mu$ H.
+
+![Lowered inductance](images/scope5.png)
+
+(note the difference in timescale)
+
+![Lowered inductance scope 2](images/scope6.png)
+
