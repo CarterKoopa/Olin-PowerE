@@ -58,8 +58,8 @@ The average voltage across the inductor is very low - about 0.0005 volts.
 
 #### Q7: What is the voltage conversion ratio for D=10% and D=50%
 Based on an input voltage of 100V:
-- For D=10%, the voltage conversion ratio is 1/10 and the output voltage is 10V.
-- For D=50%, the voltage conversion ratio is 1/2 and the output voltage is 50V.
+- For D=10%, the voltage conversion ratio is 1/10 or 0.1, and the output voltage is 10V.
+- For D=50%, the voltage conversion ratio is 1/2 or 0.5, and the output voltage is 50V.
 
 ---
 
@@ -70,4 +70,107 @@ Now, the inductance is lowered to 10 $\mu$ H.
 (note the difference in timescale)
 
 ![Lowered inductance scope 2](images/scope6.png)
+
+#### Q8: How are the waveforms changed with 10 uH?
+- The charge time of the inductor (and the associated lower peak currents as the inductor resists change) is significantly smaller and the system reaches periodic steady state much faster.
+- That being said, while the average output voltage remains more or less the same in this circuit, there is significantly more ripple in both the inductor/input currents and the output voltage. While the previous inductor configuration left very little ripple around the target value, this configuration results in fairly rapid fluxuation between roughly 5 volts and 20v. This fluxuation would obviously cause a lot of challenges in a real system.
+- The voltage across inductor also results in higher peaks (~95V vs. 90V, -20V vs -10V)
+- The average input current is slightly higher (1.25A vs 1A for the 1mH inductor).
+
+---
+
+Now place a 100 uF capacitor next to the load resistor. Add an ammeter to measure the inductor current (before the capacitor).
+
+![Buck converter with capacitor](images/circuit_cap.png)
+
+![Buck converter with capacitor scope 1](images/scope_cap_1.png)
+
+![Buck converter with capacitor scope 2](images/scope_cap_2.png)
+
+#### Q9: How have the waveforms changed? Compare the current before and after the capacitor. Which would you consider to have low-ripple and which large-ripple characteristics? What is the effect of the capacitor?
+
+- There are significantly lower ripple characteristics downstream of the capacitor in this new circuit. Looking only at the output, the capacitor circuit has low ripple characteristics, while the non-capacitor, low-inductance circuit has large ripple characteristics. Large ripple characteristics remain fairly constant across both for the characteristics measured before the capacitor (ie, input current and current through the inductor).
+- While there is some small ripple, the output voltage remains fairly constant at the desired 10V (after a spike to 20V at the beginning while the capacitor and inductor charge). This behavior is much similar to the higher-inductance inductor tested in a previous circuit.
+- The inductor current, which is measured before the capacitor in the circuit, is largely the same. However, there is a higher peak current at the beginning as both the inductor and capacitor charge.
+- Ultimately, the role of the capacitor is to resist changes in voltage, and it does a very good job in this regard smoothing out the output voltage to have much, much smaller ripple characteristics.
+
+![Circuit diagram replaced with a switch cell](images/switch-cell.png)
+
+#### Q10: Explain why the block above defined by the blue rectangle can be approximated by an ideal transformer.
+
+
+#### Q11: Run a simulation with L = 10uH and L = 5uH. What interesting observations can be made comparing the simulation results for L = 10uH and L = 5uH?
+
+![Scope 1 of L=10 vs L=5](images/scope_l_comp_1.png)
+![Scope 2 of L=10 vs L=5](images/scope_l_comp_2.png)
+
+- The inductor current waveform is noticeably different. The periodic steady state peaks are half the current for the larger 10uH inductor compared to that of the smaller 5uH inductor, 20A vs. 40A. The peak current follow this same trend with the larger 10uH inductor having a peak two-thirds that of the smaller 5uH inductor, 60A vs 40A.
+- The output voltage of the circuit with the larger 10uH inductor is also much closer to the target output voltage. While the steady state output voltage for the larger inductor hovers around and averages at the desired 10V, for the smaller inductor, the output voltage is noticeably higher with a periodic average of 13.2V.
+- The output current behaves similarly to the output voltage with a higher periodic average for the smaller inductor circuit.
+- The input current follows roughly the same pattern and variation in peaks at the current through the inductor.
+- The time to reach periodic steady state is slightly longer (although remains a tiny fraction of a second) for the larger inductor as it takes more time to build up a magnetic field.
+
+#### Q12: Create a plot for the voltage conversion ratio as a function of the inductance (D=10%) for L=1uH to 15uH, taking 1uH increments. Comment on what you see.
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+
+ratio_data = pd.read_csv('q12_ratio_inductance.csv', header=None)
+ratio_data[1] = ratio_data[1] * 100
+
+ax = ratio_data.plot(x = 0, y = 1)
+plt.ticklabel_format(axis='x', style='sci', scilimits=(-6, -6))
+ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+plt.xlabel("Inductance (H)")
+plt.ylabel("Voltage Conversion Ratio (Duty Cycle = 10%)")
+plt.title("Buck Converter Voltage Conversion Ratio as a Function of Inductance")
+plt.show()
+```
+
+**Comments:**
+- The voltage conversion ratio doesn't reach the intended value equivalent to the duty cycle until the inductance is 9uH, after which all larger values are able to maintain the desired voltage conversion ratio.
+- As the inductance gets smaller than 9 uH, the actual voltage conversion ratio begins to increase exponentially despite the target ratio remaining the same, all the way up to 27.5% (compared to the 10% duty cycle) for an inductance of 1 uH.
+
+#### Q13: Create an equivalent buck converter circuit using a Type 2 switch cell.
+Hint: this circuit will not have a common ground rail between input and output but rather a common positive ground rail.
+
+![Switch cell type 2 circuit](images/circuit_type_2.png)
+
+---
+
+Draw the indicated boost converter using a Type 2 switch cell.
+
+![Boost converter circuit using a type 2 switch cell](images/circuit_boost.png)
+
+![Boost converter scope 1](images/scope_boost_1.png)
+![Boost converter scope 2](images/scope_boost_2.png)
+
+#### Q14: What are some fundamental differences compared to the Buck behavior and waveforms?
+- Obviously, as this is a boost converter, the output voltage is larger than the input voltage, 200V out compared to 100V in.
+- The input current is much more stable in the boost converter than the buck converter. For the boost converter, while there are some very small ripple characteristics, the current stays fairly constant around 400A. However, for the buck converter, the periodic steady state oscillates (in a square wave) between the peak voltage and 0V.
+- There is significantly less ripple in the inductor current for the boost converter than the buck converter given that the inductor is connected directly to the voltage source for the boost converter.
+- There is a nice, fairly smooth logarithmic curve up to the steady state values for each of the boost converter probed waveforms. However, for the buck converter, each has a fairly large spike in current/voltage above that of the steady state before the steady state is reached.
+
+#### Q15: What is the voltage conversion ratio for D=50%?
+At a 50% duty cycle, and with an input voltage of 100V, the output voltage is 200V. This results in a voltage conversion ratio of 200/100 = 2.
+
+#### Q16: Plot the voltage conversion ratio M as a function of duty cycle for D = 10% to 90% in 10% increments.
+
+```{python}
+duty_cycle_data = pd.read_csv('q16_ratio_duty.csv', header=None)
+duty_cycle_data[0] = duty_cycle_data[0] * 100
+
+ax = duty_cycle_data.plot(x = 0, y = 1, label='M')
+ax.xaxis.set_major_formatter(mtick.PercentFormatter())
+plt.xlabel("Duty Cycle")
+plt.ylabel("M = Voltage Conversion Ratio")
+plt.title("Boost Converter Conversion Ratio vs. Duty Cycle")
+```
+
+### Independent Step
+- For the independent step for this lab, I spent a good amount of timing learning how the PLECS simulation scrips worked. I ended up writing scripts for both question 12 and question 16 that required re-running the simulation with different parameters and graphing the results so that I didn't have to rerun each manually for all the values being tested. Whether this actually [ended up being faster](https://xkcd.com/1205) is questionable, but I think it was particularly valuable to learn this now before we enter more complex labels with the potential to change many more parameters for many more values.
+- Working my way through a script for the first time was challenging! The PLECS documentation is definitely a little light in this area and GNU Octave is just different enough from MATLAB to cause some challenges with syntax and the like. Particularly challenging elements were determining how to change component parameters, like the inductor's inductance. The examples were a little light here and the print structures didn't have a ton of info, so it took quite a bit of debugging. In particular, I ran into some weird type errors with having to explicitly cast data from matrices to strings when setting component parameters. However, we got it done in the end, and exported it nicely to be graphed with matplotlib in this notebook.
+- If you're curious, all the scripts I wrote are in [my GitHub repo for this course](https://github.com/CarterKoopa/Olin-PowerE/tree/main/Lab1). 
 
