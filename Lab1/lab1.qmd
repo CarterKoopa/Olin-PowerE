@@ -94,10 +94,15 @@ Now place a 100 uF capacitor next to the load resistor. Add an ammeter to measur
 - The inductor current, which is measured before the capacitor in the circuit, is largely the same. However, there is a higher peak current at the beginning as both the inductor and capacitor charge.
 - Ultimately, the role of the capacitor is to resist changes in voltage, and it does a very good job in this regard smoothing out the output voltage to have much, much smaller ripple characteristics.
 
+---
+
 ![Circuit diagram replaced with a switch cell](images/switch-cell.png)
 
-#### Q10: Explain why the block above defined by the blue rectangle can be approximated by an ideal transformer.
+#### Q10: Explain why the block above defined by the brown rectangle can be approximated by an ideal transformer.
 
+While a transformer steps up/down voltage for AC voltage, this block with the switch cell performs the equivalent operation stepping down DC voltage. The turns ratio that would determine the voltage conversion ratio for a AC transformer is equivalent to the duty cycle being fed into the switch cell therefore allowing this block to be represented by an ideal transformer.
+
+---
 
 #### Q11: Run a simulation with L = 10uH and L = 5uH. What interesting observations can be made comparing the simulation results for L = 10uH and L = 5uH?
 
@@ -109,6 +114,8 @@ Now place a 100 uF capacitor next to the load resistor. Add an ammeter to measur
 - The output current behaves similarly to the output voltage with a higher periodic average for the smaller inductor circuit.
 - The input current follows roughly the same pattern and variation in peaks at the current through the inductor.
 - The time to reach periodic steady state is slightly longer (although remains a tiny fraction of a second) for the larger inductor as it takes more time to build up a magnetic field.
+
+---
 
 #### Q12: Create a plot for the voltage conversion ratio as a function of the inductance (D=10%) for L=1uH to 15uH, taking 1uH increments. Comment on what you see.
 
@@ -132,6 +139,8 @@ plt.show()
 **Comments:**
 - The voltage conversion ratio doesn't reach the intended value equivalent to the duty cycle until the inductance is 9uH, after which all larger values are able to maintain the desired voltage conversion ratio.
 - As the inductance gets smaller than 9 uH, the actual voltage conversion ratio begins to increase exponentially despite the target ratio remaining the same, all the way up to 27.5% (compared to the 10% duty cycle) for an inductance of 1 uH.
+
+---
 
 #### Q13: Create an equivalent buck converter circuit using a Type 2 switch cell.
 Hint: this circuit will not have a common ground rail between input and output but rather a common positive ground rail.
