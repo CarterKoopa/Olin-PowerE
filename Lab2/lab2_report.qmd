@@ -1,0 +1,201 @@
+---
+title: 'Lab 2: Buck Converter Digital Twin'
+jupyter: python3
+---
+
+## Carter Harris
+---
+### Prelab Writeup
+
+#### Determine the value for the inductance L and corresponding peak current Ipk for the buck converter with the following requirements:
+
+    - Input voltage Vg = 18 V
+    - Output voltage V = 8 V
+    - Output power Pout = 12 W
+    - Switching frequency fs = 50 kHz
+    - Duty cycle D = 35%
+    - Assume 60 uF for the output capacitance C
+
+First, the stated power output and output voltage can be used to determine an output current of 1.5A. From here, we can work backwards from Ohm's law to determine the output load resistance to be equal to $ R = \frac{16}{3} \Omega$.
+
+Given that the voltage conversion ratio M and the duty cycle D do not match each other, the buck converter will have to operate in discontinuous conduction mode. As such, we can work backwards to determine L based on the equation for $D_{DCM}$.
+- $ D_{DCM} = \sqrt{K} \cdot \sqrt{\frac{1}{1 - M}} \cdot M $, where $ M = \frac{8}{18} = 0.44 $ and $ K = \frac{2}{T_s} \cdot \frac{L}{R} = 18750L $.
+- $ 0.35 = \sqrt{18750L} \cdot \sqrt{1}{1 - 0.44} \cdot 0.44 $, which when solved algebraically, is equal to $ L = 18 \mu H $
+
+This value can then be used to calculate the DCM peak current:
+- $ i_{pk} = \sqrt{K} \cdot \sqrt{1 - M} \cdot T_s \cdot \frac{V}{L} = \sqrt{18750 \cdot 18e-6} \cdot \sqrt{1 - 0.44} \cdot 20e-6 \cdot \frac{18}{18e-6} $, which when solved algebraically, is equal to $i_{pk} = 3.901 $.
+
+#### For the value L calculated above, determine the output voltage that would result from operating the converter at D = 50%.
+
+The duty cycle $ M_{DCM} can be calculated as follows:
+- $ M_{DCM} = \frac{D^2 \cdot (\sqrt{1 + \frac{4K}{D^2}} - 1)}{2k} $, where $ D = 0.5 $ and $ K = 18750 * 18e-6 = 0.3375 $
+- $ M_{DCM} = \frac{0.5^2 \cdot (\sqrt{1 + \frac{4 \cdot 0.3375}{0.5^2}} - 1)}{2 \cdot 0.3375} $, which when solved algebraically, is equal to 0.565, or an output of 10.17 volts.
+
+---
+### Task 1: Adding UC2844 to PLECS
+
+![Circuit with both the original buck converter and UC2844](images/task1_circuit.png)
+
+#### Q1: Calculate the switching frequency according to the RC values and the equation provided in the UC2844 datasheet.
+
+$$ R = 7.87k $$
+$$ C = 2.2\mu F $$
+$$ f_{OSC} = \frac{1.72}{R_{RT} * C_{CT}} = \frac{1.72}{7.87e3 * 2.2e-9} = 99.34  kHz$$
+
+Per the datasheet, the frequency of the output gate drive is equal to have of $f_{OSC}$ at the maximum duty cycle, 50%. Therefore, the maximum switching frequency would be 49.67 khZ
+
+
+#### Q2: Attach a PLECS scope to the UC2844 output and measure the actual switching frequency.
+
+![Scope output showing the boolean output of the UC2844](images/q2_scope.png)
+
+- Using the PLECS scope cursor, the length of one period is calculated as 20.61 microseconds (e-6). The inverse of this value, equal to the switching frequency, is 48.5 kHZ. 
+- This frequency is fairly close to the expected maximum switching frequency, varying by about 1 kHz. 
+
+
+#### Q3: What percentage of the duty cycle, and why is it at that particular value?
+- The on-time is about 9.96 microseconds, compared to the total period time of 20.61 microseconds. This results in a duty cycle of 48.3%, which would explain the slightly-lower-than-maximum switching frequency noted in question 2.
+- **Why this duty cycle:** All output sensing pins of the UC2844 (ISENSE and VFB) are currently tied to ground. As such, in an attempt to raise the current to the desired output value, the UC2844 is running at the maximum duty cycle. The device will continue running at maximum duty cycle given that it will never reach the desired current output since the sense pins are tied to ground. The maximum duty cycle of the UC2844 is equal to 50%, about equal the 48% duty cycle measured.
+
+#### Model Initialization Script
+
+```{python}
+fs = 48.5e3;
+Ts = 1/fs;
+
+R = 16/3;
+C = 60e-6;
+L = 18e-6;
+
+Vg = 18;
+V = 8;
+D = 0.5;
+P = 12;
+
+L_crit = 29.6e-6
+alpha = L/L_crit;
+K = (2/Ts)*(L/R)
+M = V/Vg;
+
+Ipk = sqrt(K) * sqrt(1 - M) * Ts * (V/L);
+```
+
+---
+
+### Task 2
+
+![Task 2 circuit schematic](images/q5_circuit.png)
+
+#### Q5: Connect the output of the UC2844 to the gate of the MOSFET. Measure the average output voltage. Does it match your calculations from the lab prep?
+- The output voltage of the UC2844 circuit is about 10.11V. This compares to the pre-lab calculation of 10.22V. These values are about the same, deviating by only about .1 of a volt. This difference can likely be explained by the difference in implementation of the UC2844 and our original switch cell in PLECS.
+
+---
+Now, add a 0.05 ohm resistor according to the lab schematic and connect the top to the ISENSE pin on the UC2844. Connect a 1.5V source to the COMP pin.
+
+![Circuit with added current shunt resistor](images/q6_circuit.png)
+
+*Note that the Ipk and other displays at the top are still configured based on the DCM equations and arne't updating yet.*
+
+#### Q6: Vary the voltage from 1.5V to 1.8V in 0.1V increments. Determine the peak current value at each setting.
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+ipk_data = pd.read_csv("q6_data.csv")
+
+ipk_data.plot(x = 0, y = 1)
+plt.xlabel("COMP Voltage Source (V)")
+plt.ylabel("Peak Input Current (A)")
+plt.title("UC2844 Current Control Mode COMP Voltage vs. Peak Current")
+```
+
+#### Q7: Establish a relationship defining the peak current Ipk as a function of the COMP pin voltage.
+As shown in the figure above, the COMP voltage and the peak input current increase in a linear relationship given the UC2844 is operating in peak current control mode. For each 0.1V increase on the COMP pin, the peak input current increase by $2/3$ amp.
+
+In terms of an algebric equation, this relationship can be characterized by the equation $ I_{peak} = \frac{20}{3}V_{comp} - \frac{26}{3} $
+
+Looking under the hood of UC2844, based on Figure 12 in the datasheet, $ V_{comp} $ is fed into a resistive voltage divider with a 2R-R ratio before reaching the inverting input of the PWM comparator. This voltage divider ratio means that a 0.1V increase will require a 0.33A increase from the ISENSE pin in order to flip the comparator and cause the comparator to switch on and reset the the flip-flop, overall increasing the peak current by 0.33A
+
+#### Q8: Solve this equation for Vcomp = Ipk, implement it in the PLECS model initialization script, and configure the initialization script to achieve the peak current value calculated in the lab prep that realizes an output of V=8V.
+
+$ V_{comp} = \frac{3}{20}I_{pk} + \frac{13}{10} $
+
+![Circuit with programmatic Vcomp](images/q8_circuit.png)
+
+![Scope showing output peak current and output voltage](images/q8_scope.png)
+
+#### Q9: Plot and comment thoroughly on the following waveforms:
+
+**Source Current $I_g$**
+- ![Source current plot over time](images/q9_scope_1.png)
+- The source current is oscillating with a sawtooth-like pattern, with each period resting at zero for some time after peaking, as one would expect for a buck converter operating in discontinuous conduction mode. The current peaks at our calculated value of above 3.9 amps as controlled through the $ V_{comp} $ voltage set based upon $ I_{pk} $ in the model initialization. The pattern oscillates with a period of 20 microseconds which is equal to the 50 kHz frequency set in the model parameters. Of this period, about 7 microseconds are spent in the "on" period. 7/20 is equal to 35% which is the specified duty cycle of the buck converter.
+
+**Shunt Voltage $V_{sh}$**
+- ![Shunt voltage over time](images/q9_scope_2.png)
+- Although the shunt voltage across the $0.05\Omega$ shunt resistor is fairly small, peaking at just about 0.2 volts, it follows the exact same sawtooth pattern as the source current. This checks out given that both are controlled by and connected to the transistor. When the transistor is on, both will increase linearly in relation to reach other, and the voltage will equally drop to zero when the current drops to zero given the resistor's constant resistance and Ohm's law.
+
+**FET Drain Voltage $V_d$** - how many voltage levels do you observe? Do they correspond to the circuit and the states of Q and D?
+- ![FET drain voltage as compared to the FET gate state](images/q9_scope_3.png)
+- There are three distinct voltage levels of the FET drain: first, when it is equal to the source voltage $Vg$; second, when it is equal to the output voltage $V$; and third, when it is equal to zero. The jumps between each of these states occur near-instantaneously. These states do also correspond to the FET's gate signal, as driven from the UC2844. When the drain voltage drops to zero, the FET turns on, and after several milliseconds, the $V_d$ jumps back up to $V_g$ and the FET turns back off. As the FET turns off, the state of the diode is "switched on," as current needing a path to travel now flows though it.
+
+**Inductor Current**
+- ![Inductor current over time](images/q9_scope_5.png)
+- After the initial charge-up period, the inductor current peaks to the peak current value, about 3.91A, before returning back to zero where it rests for several microseconds. The behavior of the inductor current is more much dramatic compared to that of the other current waveforms. The triangle wave-like pattern only momentarily peaks at the max current before sharply returning to zero current.
+
+
+**Output Current**
+- ![Output current over time](images/q9_scope_4.png)
+- After an initial "charge up" period, the inductor current remains relatively constant, varying sinusoidally from about 1.48 to 1.52 amps. When compared to the transistor state, one can observe that the valley of the output current is reached just before the transistor turns back on, before then peaking again halfway through $V_d$'s peak to the source voltage $Vg$. This follows the expected behavior of the ISENSE pin controlling the UC2844 which controls the transistor's output.
+
+**Output Voltage**
+- ![Output voltage wave](images/q9_scope_6.png)
+- The output voltage oscillates sinusoidally $\pm 0.1$ V around the target output voltage of 8V, after the initial charge-up period. The pattern of this oscillation lines up with that of the other waveforms (ie, the FET gate and associated controlled currents).
+
+
+#### Q10: Copy your PLECS schematic and initialization script.
+- ![Final PLECS schematic](images/q10_circuit.png)
+- Initialization Script:
+
+```{python}
+fs = 48.5e3;
+Ts = 1/fs;
+
+R = 16/3;
+C = 60e-6;
+L = 18e-6;
+
+Vg = 18;
+V = 8;
+D = 0.35;
+P = 12;
+
+L_crit = 29.6e-6
+alpha = L/L_crit;
+K = (2/Ts)*(L/R)
+M = V/Vg;
+
+Ipk = sqrt(K) * sqrt(1 - M) * Ts * (V/L);
+
+Vcomp = (3/20)*Ipk + (13/10)
+```
+
+### Task 3
+
+#### Q11: Document your mystery team number selection
+- Lab group/mystery inductance #5
+
+#### Q12: What is the value of the unknown inductance?
+- The unknown inductance is about $10 \mu H$.
+
+#### Q13: Provide the equations to determine the inductance
+- Based upon the same methodology described in the commentary regarding the source current graph in question 10, the duty cycle of the buck converter with the unknown inductance is measured as 15% (the converter is "on" for 3 microseconds of every 20 microsecond cycle).
+- As this 15% duty cycle is not equal to the voltage conversion ratio, calculated based on the measured output voltage $ M = \frac{5.28}{18} = 0.2933 $, the buck converter must be operating in discontinous conduction mode.
+- We can then work backwards using the known duty cycle to calculate the inductance with the following formula:
+- $ D_{DCM} = \sqrt{K} \cdot \sqrt{\frac{1}{1 - M}} \cdot M $, where $ K = \frac{2}{T_s} \cdot \frac{L}{R} $
+- Substituting in our known values, $ K = 18750L $, and $ M = 0.933 $, based upon the measured output voltage, $ V = 18 $, $ R = \frac{16}{3} $, and $ T_s = 20 $ microseconds.
+- Together, this results in $ \frac{3}{20} = \sqrt{18750 \cdot L} \cdot \sqrt{\frac{1}{1 - 0.2933}} \cdot 0.2933 $, which when solved out, is equal to $ L = 10e-6 $.
+
+### Independent Step
+- No huge independent learnings this week, but I think I've honed my knowledge around the different operating modes and the math surrounding buck converters this lab through some independent teaching. I've been helping to convey back some of the lecture material and knowledge from the pre-lab back to Solomiia from afar and some others in class. For example, explaining why the buck converter was working in DCM and how that math relates to both the pre-lab questions and the lab report questions was one thing in particular from this lab. Overall, this has been great for my learning and I think it's been very gratifying that I can actually explain things to others rather than being at the mercy of CAs like in a lot of other Olin classes.
+

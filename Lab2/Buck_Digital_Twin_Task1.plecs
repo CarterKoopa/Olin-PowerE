@@ -1,5 +1,5 @@
 Plecs {
-  Name          "Buck_Digital_Twin"
+  Name          "Buck_Digital_Twin_UC"
   Version       "4.9"
   CircuitModel  "ContStateSpace"
   StartTime     "0.0"
@@ -9,7 +9,7 @@ Plecs {
   MaxStep       "1e-3"
   InitStep      "-1"
   FixedStep     "1e-3"
-  Refine        "1"
+  Refine        "10"
   ZCStepSize    "1e-9"
   RelTol        "1e-3"
   AbsTol        "-1"
@@ -28,10 +28,10 @@ Plecs {
   AlgebraicLoopWithStateMachineMsg "3"
   AssertionAction "1"
   FixedPointDatatypeOverride "1"
-  InitializationCommands "fs = 50e3;\nTs = 1/fs;\n\nR = 16/3;\nC = 60e-6;\nL ="
-" 18e-6;\n\nVg = 18;\nV = 8;\nD = 0.5;\nP = 12;\n\nL_crit = 29.6e-6\nalpha = L"
-"/L_crit;\nK = (2/Ts)*(L/R)\nM = V/Vg;\n\nIpk = sqrt(K) * sqrt(1 - M) * Ts * ("
-"V/L);\n"
+  InitializationCommands "fs = 48.5e3;\nTs = 1/fs;\n\nR = 16/3;\nC = 60e-6;\nL"
+" = 18e-6;\n\nVg = 18;\nV = 8;\nD = 0.5;\nP = 12;\n\nL_crit = 29.6e-6\nalpha ="
+" L/L_crit;\nK = (2/Ts)*(L/R)\nM = V/Vg;\n\nIpk = sqrt(K) * sqrt(1 - M) * Ts *"
+" (V/L);\n"
   InitialState  "1"
   SystemState   ""
   TaskingMode   "1"
@@ -56,7 +56,7 @@ Plecs {
   ScriptsDialogGeometry "[522 325 454 272]"
   ScriptsDialogSplitterPos "100"
   Schematic {
-    Location      [126, 123; 957, 589]
+    Location      [555, 105; 1386, 742]
     ZoomFactor    1
     SliderPosition [0, 0]
     ShowBrowser   off
@@ -757,6 +757,184 @@ Plecs {
         Show          off
       }
     }
+    Component {
+      Type          Reference
+      SrcComponent  "PE_Course/UC2844"
+      Name          "UC2844"
+      Show          on
+      Position      [385, 440]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Frame         [-60, -65; 60, 65]
+      Terminal {
+        Type          Output
+        Position      [64, -5]
+        Direction     right
+      }
+      Terminal {
+        Type          Port
+        Position      [-65, -35]
+        Direction     left
+      }
+      Terminal {
+        Type          Port
+        Position      [-65, -50]
+        Direction     left
+      }
+      Terminal {
+        Type          Port
+        Position      [-65, -20]
+        Direction     left
+      }
+      Terminal {
+        Type          Port
+        Position      [-65, 50]
+        Direction     left
+      }
+      Terminal {
+        Type          Port
+        Position      [65, -50]
+        Direction     right
+      }
+      Terminal {
+        Type          Port
+        Position      [65, 50]
+        Direction     right
+      }
+      Terminal {
+        Type          Port
+        Position      [-65, -5]
+        Direction     left
+      }
+    }
+    Component {
+      Type          Ground
+      Name          "Ground"
+      Show          off
+      Position      [45, 375]
+      Direction     up
+      Flipped       off
+      LabelPosition east
+    }
+    Component {
+      Type          Ground
+      Name          "Ground1"
+      Show          off
+      Position      [470, 575]
+      Direction     up
+      Flipped       off
+      LabelPosition east
+    }
+    Component {
+      Type          Resistor
+      Name          "R2"
+      Show          off
+      Position      [235, 495]
+      Direction     down
+      Flipped       on
+      LabelPosition west
+      Parameter {
+        Variable      "R"
+        Value         "7.87e3"
+        Show          on
+      }
+    }
+    Component {
+      Type          Capacitor
+      Name          "C2"
+      Show          off
+      Position      [235, 545]
+      Direction     down
+      Flipped       on
+      LabelPosition west
+      Parameter {
+        Variable      "C"
+        Value         "2.2e-9"
+        Show          on
+      }
+      Parameter {
+        Variable      "v_init"
+        Value         "0"
+        Show          off
+      }
+    }
+    Component {
+      Type          Ground
+      Name          "Ground2"
+      Show          off
+      Position      [235, 590]
+      Direction     up
+      Flipped       off
+      LabelPosition east
+    }
+    Component {
+      Type          Ground
+      Name          "Ground3"
+      Show          off
+      Position      [255, 440]
+      Direction     up
+      Flipped       off
+      LabelPosition east
+    }
+    Component {
+      Type          Scope
+      Name          "Scope1"
+      Show          on
+      Position      [505, 435]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Location      [415, 234; 1095, 682]
+      State         "AAAA/wAAAAD9AAAAAgAAAAEAAAAAAAAAAPwCAAAAA/sAAAAQAFoAbwBvA"
+"G0AQQByAGUAYQAAAAAA/////wAAADQA////+wAAABQAUwBhAHYAZQBkAFYAaQBlAHcAcwAAAAAA//"
+"///wAAAGYA////+wAAAAwAVAByAGEAYwBlAHMAAAAAAP////8AAABmAP///wAAAAMAAAKoAAAAZPw"
+"BAAAAAfsAAAAUAEQAYQB0AGEAVwBpAGQAZwBlAHQBAAAAAAAAAqgAAABCAP///wAAAqgAAAE/AAAA"
+"BAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAOAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAA"
+"AAAAA=="
+      SavedViews    "AAAAAgAAAAA="
+      HeaderState   "{\"DefaultSecSize\":100,\"FirstSecSize\":71,\"Labels\":[]"
+",\"VisualIdxs\":[]}"
+      PlotPalettes  "AAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      Axes          "1"
+      TimeRange     "0"
+      ScrollingMode "1"
+      SingleTimeAxis "1"
+      Open          "1"
+      Ts            "-1"
+      SampleLimit   "0"
+      XAxisLabel    "Time / s"
+      ShowLegend    "1"
+      Axis {
+        Name          "UC2844 Output"
+        AutoScale     1
+        MinValue      0
+        MaxValue      1
+        Signals       {}
+        SignalTypes   [ ]
+        AxisLabel     "On/Off Boolean"
+        Untangle      0
+        KeepBaseline  off
+        BaselineValue 0
+      }
+      Fourier {
+        SingleXAxis       on
+        AxisLabel         "Frequency / Hz"
+        Scaling           0
+        PhaseDisplay      0
+        ShowFourierLegend off
+        Axis {
+          Name          ""
+          AutoScale     1
+          MinValue      0
+          MaxValue      1
+          Signals       {}
+          Untangle      0
+          KeepBaseline  off
+          BaselineValue 0
+        }
+      }
+    }
     Connection {
       Type          Wire
       SrcComponent  "V_dc"
@@ -838,14 +1016,6 @@ Plecs {
       Points        [320, 330; 320, 290]
       DstComponent  "Switch Cell T2\nVoltage Mode1"
       DstTerminal   4
-    }
-    Connection {
-      Type          Wire
-      SrcComponent  "Switch Cell T2\nVoltage Mode1"
-      SrcTerminal   1
-      Points        [255, 345; 45, 345]
-      DstComponent  "V_dc"
-      DstTerminal   2
     }
     Connection {
       Type          Signal
@@ -949,6 +1119,79 @@ Plecs {
       Points        [715, 95; 715, 80]
       DstComponent  "Scope"
       DstTerminal   3
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "Switch Cell T2\nVoltage Mode1"
+      SrcTerminal   1
+      Points        [255, 345; 45, 345]
+      Branch {
+        DstComponent  "V_dc"
+        DstTerminal   2
+      }
+      Branch {
+        DstComponent  "Ground"
+        DstTerminal   1
+      }
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "UC2844"
+      SrcTerminal   7
+      Points        [470, 490]
+      DstComponent  "Ground1"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "C2"
+      SrcTerminal   2
+      DstComponent  "Ground2"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "UC2844"
+      SrcTerminal   3
+      Points        [255, 390; 255, 420]
+      Branch {
+        DstComponent  "Ground3"
+        DstTerminal   1
+      }
+      Branch {
+        DstComponent  "UC2844"
+        DstTerminal   4
+      }
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "R2"
+      SrcTerminal   1
+      Points        [235, 465; 275, 465; 275, 435]
+      DstComponent  "UC2844"
+      DstTerminal   8
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "R2"
+      SrcTerminal   2
+      Points        [235, 525]
+      Branch {
+        DstComponent  "C2"
+        DstTerminal   1
+      }
+      Branch {
+        Points        [280, 525; 280, 490]
+        DstComponent  "UC2844"
+        DstTerminal   5
+      }
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "UC2844"
+      SrcTerminal   1
+      DstComponent  "Scope1"
+      DstTerminal   1
     }
   }
 }
