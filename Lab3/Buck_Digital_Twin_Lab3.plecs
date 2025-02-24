@@ -28,10 +28,10 @@ Plecs {
   AlgebraicLoopWithStateMachineMsg "3"
   AssertionAction "1"
   FixedPointDatatypeOverride "1"
-  InitializationCommands "fs = 50e3;\nTs = 1/fs;\n\nR = 5;\nC = 22e-6;\nL = 16"
-"e-6;\n\nVg = 18;\nV = 9;\nD = 0.41;\nP = 12;\n\nL_crit = 29.6e-6\nalpha = L/L"
-"_crit;\nK = (2/Ts)*(L/R)\nM = V/Vg;\n\nIpk = sqrt(K) * sqrt(1 - M) * Ts * (V/"
-"L);\n\nVcomp = (3/20)*Ipk + (13/10)\n"
+  InitializationCommands "fs = 50e3;\nTs = 1/fs;\n\nR = 5;\nC = 88e-6;\nL = 16"
+".8e-6;\n\nVg = 18;\nV = 8.96;\n\nL_crit = 29.6e-6\nalpha = L/L_crit;\n\nD = 0"
+";\n\nK = (2/Ts)*(L/R)\nM = V/Vg;\n\nIpk = sqrt(K) * sqrt(1 - M) * Ts * (V/L);"
+"\n\nVcomp = (3/20)*Ipk + (13/10)\n"
   InitialState  "1"
   SystemState   ""
   TaskingMode   "1"
@@ -939,8 +939,8 @@ Plecs {
 "BAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAOAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAA"
 "AAAAA=="
       SavedViews    "AAAAAgAAAAA="
-      HeaderState   "{\"DefaultSecSize\":0,\"FirstSecSize\":196,\"Labels\":[],"
-"\"VisualIdxs\":[]}"
+      HeaderState   "{\"DefaultSecSize\":100,\"FirstSecSize\":196,\"Labels\":["
+"],\"VisualIdxs\":[]}"
       PlotPalettes  "AAAAAQAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAA"
 "AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 "=="
@@ -1054,7 +1054,7 @@ Plecs {
       Type          Voltmeter
       Name          "Vm2"
       Show          off
-      Position      [215, 365]
+      Position      [175, 360]
       Direction     down
       Flipped       on
       LabelPosition east
@@ -1063,7 +1063,7 @@ Plecs {
       Type          Goto
       Name          "Goto3"
       Show          off
-      Position      [180, 365]
+      Position      [140, 360]
       Direction     right
       Flipped       on
       LabelPosition south
@@ -1150,12 +1150,174 @@ Plecs {
       LabelPosition north
       Parameter {
         Variable      "L"
-        Value         "18e-6"
+        Value         "L"
         Show          off
       }
       Parameter {
         Variable      "i_init"
         Value         "0"
+        Show          off
+      }
+    }
+    Component {
+      Type          Scope
+      Name          "Scope1"
+      Show          on
+      Position      [725, 510]
+      Direction     up
+      Flipped       off
+      LabelPosition south
+      Location      [379, 217; 1003, 672]
+      State         "AAAA/wAAAAD9AAAAAgAAAAEAAAAAAAAAAPwCAAAAA/sAAAAQAFoAbwBvA"
+"G0AQQByAGUAYQAAAAAA/////wAAAFwA////+wAAABQAUwBhAHYAZQBkAFYAaQBlAHcAcwAAAAAA//"
+"///wAAAGYA////+wAAAAwAVAByAGEAYwBlAHMAAAAAAP////8AAABmAP///wAAAAMAAAJwAAAAhPw"
+"BAAAAAfsAAAAUAEQAYQB0AGEAVwBpAGQAZwBlAHQBAAAAAAAAAnAAAABCAP///wAAAnAAAAEmAAAA"
+"BAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAOAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAA"
+"AAAAA=="
+      SavedViews    "AAAAAgAAAAA="
+      HeaderState   "{\"DefaultSecSize\":100,\"FirstSecSize\":196,\"Labels\":["
+"],\"VisualIdxs\":[]}"
+      PlotPalettes  "AAAAAQAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAA"
+"AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      Axes          "2"
+      TimeRange     "0"
+      ScrollingMode "1"
+      SingleTimeAxis "1"
+      Open          "0"
+      Ts            "-1"
+      SampleLimit   "0"
+      XAxisLabel    "Time / s"
+      ShowLegend    "1"
+      Axis {
+        Name          "Shunt Voltage"
+        AutoScale     1
+        MinValue      0
+        MaxValue      1
+        Signals       {}
+        SignalTypes   [ ]
+        AxisLabel     "Vshunt (V)"
+        Untangle      0
+        KeepBaseline  off
+        BaselineValue 0
+      }
+      Axis {
+        Name          "Drain Voltage"
+        AutoScale     1
+        MinValue      0
+        MaxValue      1
+        Signals       {}
+        SignalTypes   [ ]
+        AxisLabel     "Vd (V)"
+        Untangle      0
+        KeepBaseline  off
+        BaselineValue 0
+      }
+      Fourier {
+        SingleXAxis       on
+        AxisLabel         "Frequency / Hz"
+        Scaling           0
+        PhaseDisplay      0
+        ShowFourierLegend off
+        Axis {
+          Name          ""
+          AutoScale     1
+          MinValue      0
+          MaxValue      1
+          Signals       {}
+          Untangle      0
+          KeepBaseline  off
+          BaselineValue 0
+        }
+        Axis {
+          Name          ""
+          AutoScale     1
+          MinValue      0
+          MaxValue      1
+          Signals       {}
+          Untangle      0
+          KeepBaseline  off
+          BaselineValue 0
+        }
+      }
+    }
+    Component {
+      Type          From
+      Name          "From5"
+      Show          off
+      Position      [680, 495]
+      Direction     right
+      Flipped       off
+      LabelPosition south
+      Parameter {
+        Variable      "Tag"
+        Value         "Vshunt"
+        Show          off
+      }
+      Parameter {
+        Variable      "Visibility"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "NoMatchingCounterpartAction"
+        Value         "1"
+        Show          off
+      }
+    }
+    Component {
+      Type          From
+      Name          "From6"
+      Show          off
+      Position      [680, 525]
+      Direction     right
+      Flipped       off
+      LabelPosition south
+      Parameter {
+        Variable      "Tag"
+        Value         "Vd"
+        Show          off
+      }
+      Parameter {
+        Variable      "Visibility"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "NoMatchingCounterpartAction"
+        Value         "1"
+        Show          off
+      }
+    }
+    Component {
+      Type          Voltmeter
+      Name          "Vm3"
+      Show          off
+      Position      [235, 375]
+      Direction     down
+      Flipped       on
+      LabelPosition east
+    }
+    Component {
+      Type          Goto
+      Name          "Goto5"
+      Show          off
+      Position      [225, 315]
+      Direction     right
+      Flipped       on
+      LabelPosition south
+      Parameter {
+        Variable      "Tag"
+        Value         "Vshunt"
+        Show          off
+      }
+      Parameter {
+        Variable      "Visibility"
+        Value         "1"
+        Show          off
+      }
+      Parameter {
+        Variable      "NoMatchingCounterpartAction"
+        Value         "2"
         Show          off
       }
     }
@@ -1383,7 +1545,7 @@ Plecs {
         }
       }
       Branch {
-        Points        [215, 275]
+        Points        [175, 275]
         DstComponent  "Vm2"
         DstTerminal   1
       }
@@ -1398,11 +1560,18 @@ Plecs {
         DstTerminal   1
       }
       Branch {
-        Points        [215, 415]
+        Points        [175, 415]
         Branch {
-          Points        [255, 415]
-          DstComponent  "R3"
-          DstTerminal   2
+          Points        [235, 415]
+          Branch {
+            Points        [255, 415]
+            DstComponent  "R3"
+            DstTerminal   2
+          }
+          Branch {
+            DstComponent  "Vm3"
+            DstTerminal   2
+          }
         }
         Branch {
           DstComponent  "Vm2"
@@ -1425,14 +1594,6 @@ Plecs {
         DstComponent  "V_dc1"
         DstTerminal   2
       }
-    }
-    Connection {
-      Type          Wire
-      SrcComponent  "V_dc1"
-      SrcTerminal   1
-      Points        [290, 355; 290, 450]
-      DstComponent  "UC2844"
-      DstTerminal   2
     }
     Connection {
       Type          Signal
@@ -1467,6 +1628,11 @@ Plecs {
       }
       Branch {
         DstComponent  "R3"
+        DstTerminal   1
+      }
+      Branch {
+        Points        [235, 350]
+        DstComponent  "Vm3"
         DstTerminal   1
       }
     }
@@ -1506,6 +1672,38 @@ Plecs {
       SrcComponent  "L1"
       SrcTerminal   2
       DstComponent  "Am3"
+      DstTerminal   2
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "From5"
+      SrcTerminal   1
+      Points        [695, 495]
+      DstComponent  "Scope1"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "Vm3"
+      SrcTerminal   3
+      Points        [220, 345; 245, 345]
+      DstComponent  "Goto5"
+      DstTerminal   1
+    }
+    Connection {
+      Type          Signal
+      SrcComponent  "From6"
+      SrcTerminal   1
+      Points        [695, 525]
+      DstComponent  "Scope1"
+      DstTerminal   2
+    }
+    Connection {
+      Type          Wire
+      SrcComponent  "V_dc1"
+      SrcTerminal   1
+      Points        [290, 355; 290, 450]
+      DstComponent  "UC2844"
       DstTerminal   2
     }
   }
