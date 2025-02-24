@@ -73,10 +73,13 @@ plt.xlim(0.00008, 0.000125)
 #### Q1: Measure the exact frequency, duty cycle, and amplitude of the output.
 
 By using the 'measure all' function on the osciliscope, the measurements are as follows:
-- Frequency: 49.7 kHz
-- Duty Cycle +/-: 47.76%/52.24%
-- Amplitude: 16.1V
-- 
+- Frequency: 50.0 kHz
+- Duty Cycle: 48%
+- Amplitude: 16.5V
+
+The scope output is shown below:
+
+![Measure all scope output](images/t2_scope_screenshot.png)
 
 ---
 
@@ -98,78 +101,70 @@ Scope probes were then attached to the $V_{sh}$ and $V_{drain}$ test points, alo
 
 ![Buck converter configuration with all measuring hardware connected](images/t3_setup.jpg)
 
-The trim pot was then used to set the output voltage to approximately 4V, measured by the DMM to be 4.071V. The resulting output measurements for $V_{sh}$ and $V_{drain}$ are shown below.
-
-**Please take note** of the timescales being slightly weird for the below graphs. This strangeness results from the two measurements being measured and exported separately and then cropped during graphing to include a signal waveform. We have since been shown how to export multiple channel measurements and align them together directly from the scope, and we will ensure that data is exported/imported in this way for following labs
+The trim pot was then used to set the output voltage to approximately 4V, measured by the DMM to be 4.034V. The resulting output measurements for $V_{sh}$ and $V_{drain}$ are shown below.
 
 ```{python}
-[t3_vsh_4, t3_vsh_t0_4, t3_vsh_dT_4] = read_rigol_csv("data/t3_sh_4.csv")
+[t3_4, t3_t0_4, t3_dT_4] = read_rigol_csv("data/t3_4.csv")
 
-plt.subplot(1, 2, 1)
-plt.plot(t3_vsh_4["X"], t3_vsh_4["CH1"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vsh (volts)")
-plt.title("Vsh with 4V output")
-plt.xlim(-0.5e-5, 3e-6)
+fig, ax1 = plt.subplots()
 
-[t3_vdr_4, t3_vdr_t0_4, t3_vdr_dT_4] = read_rigol_csv("data/t3_dr_4.csv")
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-1e-5, 2.5e-5)
+ax1.set_ylabel("Shunt Voltage (V)")
+ax1.plot(t3_4["X"], t3_4["CH1"], label="Shunt Voltage")
 
-plt.subplot(1, 2, 2)
-plt.plot(t3_vdr_4["X"], t3_vdr_4["CH2"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vdr (volts)")
-plt.title("Vdr with 4V output")
-plt.xlim(-1.2e-5, 1e-5)
+ax2 = ax1.twinx()
 
-plt.tight_layout()
+ax2.set_ylabel("Drain Voltage (V)")
+ax2.plot(t3_4["X"], t3_4["CH2"], color = 'tab:orange', label="Drain Voltage")
+
+plt.title("Shunt & Drain Voltage with 4V Output")
+fig.legend()
+fig.tight_layout()
 ```
 
-The same process was completed for an ideal output voltage of 7V, logged to an actual output voltage of 7.06V. The output figures are shown below.
+The same process was completed for an ideal output voltage of 7V, logged to an actual output voltage of 6.99V. The output figures are shown below.
 
 ```{python}
-[t3_vsh_7, t3_vsh_t0_7, t3_vsh_dT_7] = read_rigol_csv("data/t3_sh_7.csv")
+[t3_7, t3_t0_7, t3_dT_7] = read_rigol_csv("data/t3_7.csv")
 
-plt.subplot(1, 2, 1)
-plt.plot(t3_vsh_7["X"], t3_vsh_7["CH1"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vsh (volts)")
-plt.title("Vsh with 7V output")
-plt.xlim(-1e-5, 3e-6)
+fig, ax1 = plt.subplots()
 
-[t3_vdr_7, t3_vdr_t0_7, t3_vdr_dT_7] = read_rigol_csv("data/t3_dr_7.csv")
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-2e-5, 1e-5)
+ax1.set_ylabel("Shunt Voltage (V)")
+ax1.plot(t3_7["X"], t3_7["CH1"], label="Shunt Voltage")
 
-plt.subplot(1, 2, 2)
-plt.plot(t3_vdr_7["X"], t3_vdr_7["CH2"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vdr (volts)")
-plt.title("Vdr with 7V output")
-plt.xlim(-1.5e-5, 0.5e-5)
+ax2 = ax1.twinx()
 
-plt.tight_layout()
+ax2.set_ylabel("Drain Voltage (V)")
+ax2.plot(t3_7["X"], t3_7["CH2"], color = 'tab:orange', label="Drain Voltage")
+
+plt.title("Shunt & Drain Voltage with 7V Output")
+fig.legend()
+fig.tight_layout()
 ```
 
 And finally, the same process was completed with a desired 9V output, measured to actually be 8.96V. The output plots are:
 
 ```{python}
-[t3_vsh_9, t3_vsh_t0_9, t3_vsh_dT_9] = read_rigol_csv("data/t3_sh_9.csv")
+[t3_9, t3_t0_9, t3_dT_9] = read_rigol_csv("data/t3_9.csv")
 
-plt.subplot(1, 2, 1)
-plt.plot(t3_vsh_9["X"], t3_vsh_9["CH1"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vsh (volts)")
-plt.title("Vsh with 9V output")
-plt.xlim(-1e-5, 3e-6)
+fig, ax1 = plt.subplots()
 
-[t3_vdr_9, t3_vdr_t0_9, t3_vdr_dT_9] = read_rigol_csv("data/t3_dr_9.csv")
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-2.5e-5, 0.25e-5)
+ax1.set_ylabel("Shunt Voltage (V)")
+ax1.plot(t3_9["X"], t3_9["CH1"], label="Shunt Voltage")
 
-plt.subplot(1, 2, 2)
-plt.plot(t3_vdr_9["X"], t3_vdr_9["CH2"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vdr (volts)")
-plt.title("Vdr with 9V output")
-plt.xlim(-0.5e-5, 1e-5)
+ax2 = ax1.twinx()
 
-plt.tight_layout()
+ax2.set_ylabel("Drain Voltage (V)")
+ax2.plot(t3_9["X"], t3_9["CH2"], color = 'tab:orange', label="Drain Voltage")
+
+plt.title("Shunt & Drain Voltage with 9V Output")
+fig.legend()
+fig.tight_layout()
 ```
 
 ---
@@ -178,75 +173,69 @@ plt.tight_layout()
 
 Next, the same process as in task 3 was completed to measure the gate drive output voltage $V_{gdr}$ and gate voltage $V_{gate}$.
 
-First, for the 4V desired output, the DMM measured a 4.094V output, as the scope readings are shown below.
+First, for the 4V desired output, the DMM measured a 4.094V output, as the scope readings are shown below. The scope measured the output duty cycle as 14%.
 
 ```{python}
-[t4_vgdr_4, t4_vgdr_t0_4, t4_vgdr_dT_4] = read_rigol_csv("data/T4_VDR_4.csv")
+[t4_4, t4_t0_4, t4_dT_4] = read_rigol_csv("data/t4_4.csv")
 
-plt.subplot(1, 2, 1)
-plt.plot(t4_vgdr_4["X"], t4_vgdr_4["CH1"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vgdr (volts)")
-plt.title("Vgdr with 4V output")
-plt.xlim(-1.4e-5, -0.6e-5)
+fig, ax1 = plt.subplots()
 
-[t4_vg_4, t4_vg_t0_4, t4_vg_dT_4] = read_rigol_csv("data/T4_VG_4.csv")
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-2.5e-5, -1e-5)
+ax1.set_ylabel("Gate Driver Voltage (V)")
+ax1.plot(t4_4["X"], t4_4["CH1"], label="Vgdr")
 
-plt.subplot(1, 2, 2)
-plt.plot(t4_vg_4["X"], t4_vg_4["CH2"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vg (volts)")
-plt.title("Vg with 4V output")
-plt.xlim(-1.2e-5, -0.6e-5)
+ax2 = ax1.twinx()
 
+ax2.set_ylabel("Gate Voltage (V)")
+ax2.plot(t4_4["X"], t4_4["CH2"], color = 'tab:orange', label="Vgate")
+
+plt.title("Gate & Gate Driver Voltage with 4V Output")
+fig.legend()
 plt.tight_layout()
 ```
 
-The same was completed for a 7V output, measured to actually be 6.90V.
+The same was completed for a 7V output, measured to actually be 7.09V. The scope measured the duty cycle at 28%.
 
 ```{python}
-[t4_vgdr_7, t4_vgdr_t0_7, t4_vgdr_dT_7] = read_rigol_csv("data/T4_VDR_7.csv")
+[t4_7, t4_t0_7, t4_dT_7] = read_rigol_csv("data/t4_7.csv")
 
-plt.subplot(1, 2, 1)
-plt.plot(t4_vgdr_7["X"], t4_vgdr_7["CH1"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vgdr (volts)")
-plt.title("Vgdr with 7V output")
-plt.xlim(-1.5e-5, 0.5e-5)
+fig, ax1 = plt.subplots()
 
-[t4_vg_7, t4_vg_t0_7, t4_vg_dT_7] = read_rigol_csv("data/T4_VG_7.csv")
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-2.5e-5, 0.25e-5)
+ax1.set_ylabel("Gate Driver Voltage (V)")
+ax1.plot(t4_7["X"], t4_7["CH1"], label="Vgdr")
 
-plt.subplot(1, 2, 2)
-plt.plot(t4_vg_7["X"], t4_vg_7["CH2"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vg (volts)")
-plt.title("Vg with 7V output")
-plt.xlim(-1e-5, 1e-5)
+ax2 = ax1.twinx()
 
+ax2.set_ylabel("Gate Voltage (V)")
+ax2.plot(t4_7["X"], t4_7["CH2"], color = 'tab:orange', label="Vgate")
+
+plt.title("Gate & Gate Driver Voltage with 7V Output")
+fig.legend()
 plt.tight_layout()
 ```
 
-And finally, for a 9V output, with a measured actual output of 8.96 volts.
+And finally, for a 9V output, with a measured actual output of 8.96 volts. The scope measured the duty cycle at 39%.
 
 ```{python}
-[t4_vgdr_9, t4_vgdr_t0_9, t4_vgdr_dT_9] = read_rigol_csv("data/T4_VDR_9.csv")
+[t4_9, t4_t0_9, t4_dT_9] = read_rigol_csv("data/t4_9.csv")
 
-plt.subplot(1, 2, 1)
-plt.plot(t4_vgdr_9["X"], t4_vgdr_9["CH1"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vgdr (volts)")
-plt.title("Vgdr with 9V output")
-plt.xlim(-2e-5, 0e-5)
+fig, ax1 = plt.subplots()
 
-[t4_vg_9, t4_vg_t0_9, t4_vg_dT_9] = read_rigol_csv("data/T4_VG_9.csv")
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-2.5e-5, 0.25e-5)
+ax1.set_ylabel("Gate Driver Voltage (V)")
+ax1.plot(t4_9["X"], t4_9["CH1"], label="Vgdr")
 
-plt.subplot(1, 2, 2)
-plt.plot(t4_vg_9["X"], t4_vg_9["CH2"])
-plt.xlabel("Time (s)")
-plt.ylabel("Vg (volts)")
-plt.title("Vg with 9V output")
-plt.xlim(0.2e-5, 2e-5)
+ax2 = ax1.twinx()
 
+ax2.set_ylabel("Gate Voltage (V)")
+ax2.plot(t4_9["X"], t4_9["CH2"], color = 'tab:orange', label="Vgate")
+
+plt.title("Gate & Gate Driver Voltage with 9V Output")
+fig.legend()
 plt.tight_layout()
 ```
 
@@ -258,28 +247,28 @@ plt.tight_layout()
 
 The following math will use the data collected in the final section of Task 4 based upon a 9V output. 
 
-Looking at the gate voltage using the oscilliscope with the same setup as Task 4, the period of the transistor's operation is measured to be approximately 50 kHz. This equates to a period of $ 20 \mu S $. The duty cycle is measured as $41\%$. The same measurements could be extracted from the measured data, which I did and verified to be equivalent.
+Looking at the gate voltage using the oscilliscope with the same setup as Task 4, the period of the transistor's operation is measured to be approximately 50 kHz. This equates to a period of $ 20 \mu S $. The duty cycle, as measured from the scope, is 39%.
 
 As we have a 18V input and 8.96V volt output, the voltage conversion ratio is equal to $M = \frac{8.96}{18} = 50\%$. As the duty cycle and the output voltage are not equal, the buck converter must be operating in DCM mode. As such, the DCM duty cycle equation can be used backwards to calculate the $K$ constant, from which the inductance can be calculated.
 
 $ D_{DCM} = \sqrt{K} \cdot \sqrt{\frac{1}{1 - M}} \cdot M = \sqrt{K} \cdot \sqrt{\frac{1}{1 - 0.5}} \cdot 0.5 = 0.707\sqrt{K} $
 
-$ 0.41 = 0.707\sqrt{K} $, which calculates out to $ K = 0.32 $.
+$ 0.41 = 0.707\sqrt{K} $, which calculates out to $ K = 0.336 $.
 
 Given the definition of K, $ K = \frac{2}{T_s} \cdot \frac{L}{R} $ and the $5 \Omega $ resistance of our load resistor, all known information can be substituted in:
 
-$0.32 = \frac{2}{20e-6} \cdot \frac{L}{5} $, which can be solved algebraically for $ L = 16 \mu H$
+$0.336 = \frac{2}{20e-6} \cdot \frac{L}{5} $, which can be solved algebraically for $ L = 16.8 \mu H$
 
 #### Q4: Update the digital twin model with the inductance value and measured switching frequency.
 The simulation parameters can be updated as follows:
+- The $ 16.8 \mu H$ inductor
 - A $5 \Omega $ load resistance
 - A 50 kHz switching frequency
-- A capacitance of $5.5 \mu F$, based upon having 4, $22 \mu F $ capacitors in parallel in the lab hardware.
+- A capacitance of $88 \mu F$, based upon having 4, $22 \mu F $ capacitors in parallel in the lab hardware.
 - Vg = 18 volts
-- V = 9 volts
-- Duty cycle = 41%
+- V = 9 volts. For the following calculations, a desired output voltage of 8.96 volts will be used to mirror the data collected in the final part of the lab. This voltage will be used to calculate $I_{pk}$ and the corresponding $V_{comp}$ to control the UC2844 in simulation.
 
-The simulated voltage is slightly higher than that of the actual buck converter. This difference, roughly 0.7V, is likely due to PLECS using ideal components and the lab hardware having some amount of loss.
+When set with all matching parameters, the digital twin outputs a slightly lower output voltage of 8.72 volts compared to the 8.96 volts of the lab hardware.
 
 The complete initialization script is shown below:
 
@@ -288,13 +277,16 @@ fs = 50e3;
 Ts = 1/fs;
 
 R = 5;
-C = 22e-6;
-L = 16e-6;
+C = 88e-6;
+L = 16.8e-6;
 
 Vg = 18;
-V = 9;
-D = 0.41;
-P = 12;
+V = 8.96;
+
+L_crit = 29.6e-6
+alpha = L/L_crit;
+
+D = 0;
 
 K = (2/Ts)*(L/R)
 M = V/Vg;
@@ -308,38 +300,47 @@ Vcomp = (3/20)*Ipk + (13/10)
 
 The simulation results are as follows:
 
-![Simulation output of shunt and drain voltage](images/q5_model.png)
+![Simulation output of shunt and drain voltage](images/post_q5_model.png)
 
 Datapoints of note from this plot include:
 - **Shunt Voltage**
     - Shape: The shunt voltage is a perfect sawtooth wave, aside from the gaps between "teeth" off-cycle.
-    - Amplitude: The sawtooth peaks at 0.225 volts
-    - Timing: The voltage begins increasing as the transistor turns off.
-    - Duty Cycle: 50%
+    - Amplitude: The sawtooth peaks at 0.219 volts
+    - Timing: The voltage begins increasing as the transistor turns off and drops to zero as the transistor turns on.
+    - Duty Cycle: 40%
 - **Drain Voltage**
     - Shape: A square-like wave with three distinct voltage levels that oscillate sequentially from high to low.
-    - Amplitude: 18V at the highest level, 8.18V at the mid level, and around 0.1V for the low voltage.
+    - Amplitude: 18V at the highest level, 9.28V at the mid level, and around 0.16V for the low voltage.
     - Timing: The high level peak turn-on occurs at the peak of the shunt voltage.
-    - Duty Cycle: 50% including both the high/mid level voltages; 40% at just the highest voltage level.
+    - Duty Cycle: 40%
 
-To re-plot the lab measured data:
+To re-plot the lab measured data both overlaid and separate:
 
 ```{python}
-[t3_vsh_9, t3_vsh_t0_9, t3_vsh_dT_9] = read_rigol_csv("data/t3_sh_9.csv")
+fig, ax1 = plt.subplots()
 
+ax1.set_xlabel("Time (s)")
+ax1.set_xlim(-2e-5, 1e-5)
+ax1.set_ylabel("Shunt Voltage (V)")
+ax1.plot(t3_9["X"], t3_9["CH1"], label="Shunt Voltage")
+
+ax2 = ax1.twinx()
+
+ax2.set_ylabel("Drain Voltage (V)")
+ax2.plot(t3_9["X"], t3_9["CH2"], color = 'tab:orange', label="Drain Voltage")
+fig.legend()
+fig.tight_layout()
+
+plt.figure()
 plt.subplot(2, 1, 1)
-plt.plot(t3_vsh_9["X"], t3_vsh_9["CH1"])
+plt.plot(t3_9["X"], t3_9["CH1"])
 plt.xlabel("Time (s)")
-plt.ylabel("Vsh (volts)")
-plt.title("Shunt Voltage with 9V output")
-
-[t3_vdr_9, t3_vdr_t0_9, t3_vdr_dT_9] = read_rigol_csv("data/t3_dr_9.csv")
+plt.ylabel("Vsh (V)")
 
 plt.subplot(2, 1, 2)
-plt.plot(t3_vdr_9["X"], t3_vdr_9["CH2"])
+plt.plot(t3_9["X"], t3_9["CH2"])
 plt.xlabel("Time (s)")
-plt.ylabel("Vdr (volts)")
-plt.title("Drain Voltage with 9V output")
+plt.ylabel("Vdr (V)")
 
 plt.tight_layout()
 ```
@@ -348,22 +349,82 @@ Datapoints of interest from this graph and comparisons:
 
 - **Shunt Voltage**
     - Shape: The same sawtooth shape is apparent, however, there are large +/- voltage oscillations at both the start and the end of the sawtooth.
-    - Amplitude: The sawtooth, ignoring the large oscillations, peaks at 0.252 volts. This is slightly higher than the simulation value of 0.225 volts.
-    - Timing:
-    - Duty Cycle: Approximately 38% by inspection of the recorded data, which is less than the simulation duty cycle of 50%
+    - Amplitude: The sawtooth, ignoring the large oscillations, peaks at 0.252 volts. This peak is slightly higher than the simulation peak of 0.219 volts, alluding to an overall higher peak current across the shunt resistor.
+    - Timing: The shunt voltage shows the same timing behavior as the simulation. The shunt voltage begins increasing as the drain voltage drops to zero (the transistor turns off) and peaks as the transistor turns back on (drain voltage jumps back up).
+    - Duty Cycle: The duty cycle as measured by the scope was 39%, approximately equal to that of the simulation, 40%.
 - **Drain Voltage**
-    - Shape: The same general 3-level square wave shape is apparent. However, for the mid level, instead of staying relatively constant as was the case in the simulation, the voltage oscillated around a label slightly higher than that of the mid level in the simulation.
-    - Amplitude: 18.2 volts at the high level, which matches that of the simulation. The oscillations of the mid voltage level average to about 9.5 volts.
-    - Timing:
-    - Duty Cycle: Looking at both the high level and oscillating sections, the duty cycle is approximately 55% when calculated by inspection of the recorded data. Looking at just the high-level output, the duty cycle is 35% when calculated by inspection of the recorded data. These calculated values are about 5% higher and lower than the simulation duty cycles, respectively.
+    - Shape: The waveform retains its three distinct region. The first "high" level voltage, resembling a square wave, remains fairly similar, except for the large voltage spike at the transistor turn on. The middle region varies the most from the simulation - instead of another relatively constant voltage level, the lab hardware drain voltage oscillates about around a midpoint slightly higher than that of the constant voltage seen in the simulation. Finally, the waveform returns to the same low "off" voltage near zero.
+    - Amplitude: 18.2 volts at the high level, which approximately matches that of the simulation. The oscillations of the mid voltage level average to about 9.5 volts.
+    - Timing: See above for the shunt resistor timing, but the timing of the drain voltages matches that of the simulation, aside from the noise discussed in the shape section.
+    - Duty Cycle: The duty cycle as measured by the scope is 39.5%, approximately equal to that of the simulation, 40%.
 
-Overall, the waveforms have the same timing, general shape, and magnitude of amplitude and duty cycle between the simulation and the lab data. However, the lab circuit does have more noise as would be expected in a real-world, non-ideal circuit subject to interference and various parasitic capacitances, among other things. Further, the shunt voltage is slightly higher. This accounts for the greater power flow that would be occurring in the real-world, non-ideal circuit.
+Overall, the waveforms between the simulation and the actual lab hardware are very similar. The duty cycle and timing are pretty much close to identical. While the general form of the shape is similar, there is quite a bit more noise and oscillation observed in the actual lab hardware, as would be expected with real-world non-ideal components. The notable differences are the oscillation visible in the drain voltage and the spikes that are apparent in each waveform when the transistor switches. Finally, the amplitude is slightly higher. This difference accounts for the higher power draw of the converter than will be required to reach the same voltage when using non-ideal dissipative components.  
 
 #### Q6: Are the simplifying assumptions made in our theoretical study of the inductor valid?
 
+Like all applications, it depends. By and large, the assumptions made in our theoretical study of the inductor were valid. While there are some differences in the exact output voltage of the buck converter, this difference is to be expected when using ideal vs. non-ideal components, and the behavior was as-modeled. Further, while there were some interesting voltage spikes and oscillations, the duty cycle and overall function of the buck converter remained the same. Whether these deviations are acceptable comes back to the "it depends" part and would be determined by the application and the sensitivity of the components your power electronics are powering. 
+
 
 #### Q7: Does the measured peak current and duty cycle match the theoretical predictions?
-The measured peak current of the lab hardware can be calculated based on the shunt resistance ($0.05 \Omega$) and Ohm's Law, such that $ I = \frac{V}{R} = \frac{0.252}{0.05} = 5.04 amps. The peak current calculated in simulation is 4.5 amps. While these two values don't exactly match, this roughly 10% difference can fairly easily be explained by the non-ideal real-world efficiency of our buck converter, where 90% is a fairly reasonable efficiency for a well-designed buck converter.
+The measured peak current of the lab hardware can be calculated based on the shunt resistance ($0.05 \Omega$) and Ohm's Law, such that $ I = \frac{V}{R} = \frac{0.252}{0.05} = 5.04 $ amps. The peak current calculated in simulation is 4.4 amps. While these two values don't exactly match, this roughly 10% difference can fairly easily be explained by the non-ideal real-world efficiency of our buck converter, where 90% is a fairly reasonable efficiency for a well-designed buck converter.
 
-The measured duty cycle, based upon the waveforms seen in the shunt voltage, is about 38%. This is quite a bit lower than that of the simulation which is 50%.
+The duty cycle does match the theoretical predictions which both being roughly 40%.
+
+#### Q8: Plot the gate voltage and gate current during MOSFET turn-on and turn-off for the output voltages 4V, 7V, and 9V.
+
+```{python}
+plt.figure()
+
+# Shift to align timescales
+t4_4["X"] = t4_4["X"] - 0.35e-5
+t4_9["X"] = t4_9["X"] - 0.35e-5
+
+max_voltage_4 = t4_4["CH1"].max()
+max_voltage_7 = t4_7["CH1"].max()
+max_voltage_9 = t4_9["CH1"].max()
+print(f"Maximum gate voltage for 4V output: {max_voltage_4}")
+print(f"Maximum gate voltage for 7V output: {max_voltage_7}")
+print(f"Maximum gate voltage for 9V output: {max_voltage_9}")
+
+
+plt.plot(t4_4["X"], t4_4["CH2"], label="4V Output")
+plt.plot(t4_7["X"], t4_7["CH2"], label="7V Output")
+plt.plot(t4_9["X"], t4_9["CH2"], label="9V Output")
+plt.legend()
+plt.title("Gate Voltages by Output Voltage")
+plt.xlabel("Time (s)")
+plt.ylabel("Vgate (V)")
+```
+
+Based upon the measured gate driver and gate voltages, the voltage drop across the gate resistor (R12, $33 \Omega$) can be extrapolated. Based upon this voltage, Ohm's law can be used to calculate the current through this resistor and subsequently through the gate (considering R14 negligible with its large $100k \Omega$ resistance.)
+
+```{python}
+t4_4["I"] = (t4_4["CH2"] - t4_4["CH1"]) / 33
+t4_7["I"] = (t4_7["CH2"] - t4_7["CH1"]) / 33
+t4_9["I"] = (t4_9["CH2"] - t4_9["CH1"]) / 33
+
+max_current_4 = t4_4["I"].max()
+max_current_7 = t4_7["I"].max()
+max_current_9 = t4_9["I"].max()
+print(f"Max current for 4V output: {max_current_4}")
+print(f"Max current for 7V output: {max_current_7}")
+print(f"Max current for 9V output: {max_current_9}")
+
+plt.figure()
+plt.plot(t4_4["X"], t4_4["I"], label="4V Output")
+plt.plot(t4_7["X"], t4_7["I"], label="7V Output")
+plt.plot(t4_9["X"], t4_9["I"], label="9V Output")
+plt.legend()
+plt.title("Gate Current by Output Voltage")
+plt.xlabel("Time (s)")
+plt.ylabel("Gate Current (amps)")
+```
+
+As shown above, the current peaks at a value of around +/- 0.36 amps.
+
+#### Q9: Are we respecting the maximum allowable gate voltage for the MOSFET?
+For a reminder, the MOSFET being used is a FDP61N20 N-Channel MOSFET. As shown in the above question, the maximum gate voltage is 18.3V. According to the FDP61N20 datasheet, the maximum gate to source voltage is $\pm 30V$. As the gate voltage above is taken relative to the circuit ground, and the MOSFET source is tied to ground, this rating should never be exceeded and is being respected.
+
+#### Q10: Are we respecting the maximum allowable output current of the UC2844?
+According to the calculations preformed in question 9, the maximum gate current, which neglecting R14 as described in Q9 be equal to the maximum gate current, is 0.36 amps. According to the UC2844's datasheet, the maximum output drive current $I_{output}$ is $\pm 1$ amp. As our current is below this rating, the maximum allowable output current is being respected.
 
