@@ -1,0 +1,274 @@
+---
+title: Lab 4 Report
+jupyter: python3
+---
+
+
+## Carter Harris
+
+---
+## Pre-Lab Write-Up
+
+To calculate determine the required specifications of the inductor, I first began by calculating the minimum number of turns required for our inductor. The minimum number of turns is determined by the maximum inductance, maximum current, and maximum magnetic flux, as described in the formula $$ N \geq \frac{L_{max} \cdot i_{max}}{\phi_{max}} $$ where N is the number of turns. 
+
+While the PC95 material used for the supplied core has a higher saturation magnetic flux density, the inductor design specifications require a maximal peak flux density in the ferrite core of 200 mT. Further, the datasheet for the PC95PQ20 bobbin being used specifies a cross sectional area of 62.6 mm^2, or 6.26e-5 m^2. These two values can be combined to find the maximum magnetic flux of the inductor as defined by the following equation: $\phi_{max} = B_{max} \cdot A$, where B is the flux density described above and A is the following cross sectional area. As such, $$ \phi_{max} = 0.200 \cdot 6.26e-5 = 12.52 \cdot 10^{-6}  T \cdot m^2$$
+
+The other two components of the turn equation, $L_{max}$ and $I_{max}$, are specified in the inductor requirements to be $20 \mu H$ for the inductance and 6A for the current. After converting these to SI units, the minimum turns can then be calculated as: $$N_{min} \geq \frac{L_{max} \cdot i_{max}}{\phi_{max}} = \frac{20\cdot 10^{-6} \cdot 6}{12.52 \cdot 10^{-6}} = 9.58 $$ As you can't have partial turns, this value rounds up to result in a final minimum number of turns of 10.
+
+After calculating the minimum number of turns, we can now work backwards to calculate the gap thickness needed to ensure a proper inductance. First, the permeance can be calculated based on our desired inductance and number of turns. While 10 is just the minimum, we chose to continue with this value of 10 for our inductor design to simplify assembly. Based upon this choice, the permeance is defined by the equation $ L = N^2 \cdot P$, where P is the permeance, L is the inductance, and N is the number of turns. Working backwards, the permeance is equal to $ P = \frac{L}{N^2} = \frac{20 \cdot 10^{-6}}{10^2} = 0.2 \cdot 10^{-8} $
+
+To continue working towards the gap length, the permeance is defined as $ P = \mu_{0} \cdot \frac{A}{l} $, where $ \mu_{0} $ is the permeability of free space (of which our non-magnetic gapping material, PTFE shim stock, approximates), A is the effective area, and L is the effective length (thickness) of the gap. Note that this equation ignores the permeability of the magnetic core ($\mu$), however, this value is orders of magnitude smaller than the permeability of free space and thus safe to abstract. Given we already know the area, $A$, from calculating the minimum number of turns, and we know the permiability of free space (air, or or PTFE shim stock) to be $ \mu_{0} = 1.26 \cdot 10^{-6}$, this equation can be rearranged to be solved for $l$, the length of the gap. $$ l = \frac{\mu_{0} \cdot A}{P} = \frac{1.26 \cdot 10^{-6} \cdot 6.26 \cdot 10^{-5}}{0.2 \cdot 10^{-8}} = 0.0003944 m$$ When converted to inches, this value is equal to about $ l = 0.016 in$. The closest shim stock is 0.015, so this shim stock was used for our inductor.
+
+The final calculation left was in choosing the gauge of wire to use for winding the coil. This value was defined by the maximal RMS (root-mean squared) current density in the copper wire of $ 10A_{rms}/mm^2 $. The peak current overall of the inductor is 6A. The requirements further specify to assume a worst-case RMS equvilient, which occurs in boundary conduction mode. The RMS current of a BCM buck converter is defined based on the peak current as $ i_{rms} = \sqrt{\frac{1}{3}} \cdot i_{pk} $. As such, the max RMS current is equal to $ i_{rms} = \sqrt{\frac{1}{3}} \cdot 6 = 3.46A $. Based upon the max RMS current, the cross-section area of the wire must be defined such that $ \frac{3.46}{A} \leq 10 $ so that the maximum current density is respected. Solving this inequality and converting from the minimum area to the minimum diameter for a circle results in a minimum diameter of 0.66mm. 22 AWG wire is slightly too small with a 0.64mm diameter, and as such, the next size up, 20 AWG with a 0.812mm diameter, is used.
+
+Both team members completed all the above calculations independently and compared our results to validate.
+
+This concludes all required calculations, leaving us with the following specifications:
+- 10 turns for the wining
+- 20 AWG wire
+- 0.015" shim thickness.
+
+Tyler and I then completed the assembly process. I personally wound the coil, Tyler placed and clipped in the shims, and then each of us soldered one of the two end of the coil to the pins on the bobbin. Photos of the assembly process are included below.
+
+![Assembling core](images/assem.jpg)
+
+![Soldering the coil wires to the bobbin](images/soldering.jpg)
+
+![Final inductor](images/final.jpg)
+
+![LCR meter test of inductor](images/lcr.jpg)
+
+Upon our initial test of the inductor on the LCR meter, the inductor slightly underperformed with an inductance of $16.2 \mu H$. While this was within the tolerance allowed, we wanted to try to move this value closer to the desired $20 \mu H$. To increase the inductance, we added one additional turn to the coil, bringing our total count to N = 11. Upon testing after making this change, the LCR meter read our inductor as $19.29 \mu H$ - pretty darn close to the desired value. This modification concluded our inductor build and we then moved into the lab assignment.
+
+
+
+---
+
+The test setup used for all following measurements is shown below:
+
+![Test setup](images/setup.jpg)
+
+For our first measurements, the output voltage was set using the potentiometer such that the shunt voltage would peak at about 100mV.
+
+#### Q1: Save shunt and drain voltage measurements and plot them in Jupyter.
+
+```{python}
+from rigol import read_rigol_csv
+from matplotlib import pyplot as plt
+import numpy as np
+import pandas as pd
+
+[q1_data, q1_d0, q1_dt] = read_rigol_csv("data/q1.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(q1_data["X"], q1_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+ax2 = ax1.twinx()
+ax2.plot(q1_data["X"], q1_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.xlim(-2.1e-5, 1e-6)
+plt.title("Voltage over Time with Custom Inductor (Vsh peak = 100 mV)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+
+
+left_bound_q1 = -1.4e-6
+right_bound_q1 = -0.45e-6
+plt.axvline(x = left_bound_q1, linestyle='--', color='r', label="Lower Slope Limit")
+plt.axvline(x = right_bound_q1, linestyle='--', color='r', label="Upper Slope Limit")
+```
+
+The above red dotted lines show the limits later used to calculate the slope of the shunt voltage.
+
+#### Q2: Note the current output supplied by the power supply as well as the output voltage.
+- **Power Supply Current:** 0.17A
+- **Output Voltage:** 2.96V
+
+#### Q3: Calculate the inductance value from these measurements.
+
+Inductance is defined as $V_L = \frac{dI_L}{dt} * L$, where I is the current across the inductor.
+
+Further, when the transistor is on, $V_L = V_{in} - V_{out}$ by Kirchoff's Voltage Law, as the current takes the path of least resistance to ground through the transistor and through the shunt resistor to ground.
+
+Based upon Ohm's Law and the $0.05 \Omega$ resistance of the shunt resistor, the current through the shunt resistor is equal to $ I_{sh} = \frac{V_{sh}}{0.05}$. As there is a single path from the inductor to the shunt resistor, the current through the shunt resistor and inductor are equal, such that $ I_L =  \frac{V_{sh}}{0.05} $
+
+Taking the derivative of the previous equation results in $\frac{dI_L}{dt} = \frac{1}{0.05} \cdot \frac{dV_{sh}}{dt}$.
+
+Based upon our collected data, the slope of the shunt resistance for the period the transistor is on can be substituted in for $\frac{dV_{sh}}{dt}$. After calculating this value and substituting it back into the definition of inductance, the equation can be solved for the inductance, L.
+
+```{python}
+OUTPUT_VOLTAGE_Q1 = 2.96
+
+ind1 = np.where(q1_data["X"] > left_bound_q1)[0][0]
+ind2 = np.where(q1_data["X"] > right_bound_q1)[0][0]
+
+Vsh_diff = np.gradient(q1_data["CH1"][ind1:ind2], q1_data["X"][ind1:ind2])
+
+slope = Vsh_diff.mean()
+
+dL = (1/0.05) * slope
+
+Vl = 18 - OUTPUT_VOLTAGE_Q1
+
+inductance = (Vl)/dL
+
+print(f"Inductance (H): {inductance}")
+```
+
+As shown above, the inductance is calculated to be $18.3 \mu H$, which equates to an error of -8.5% from the $20 \mu H $ specified value. This error is within the specified tolerance of +0%/-20%. However, this inductance was $ 1 \mu H$ lower than that which was measured using the LCR meter. This different is likely due to difference in calibration (or lack thereof) between the meters and the fact that the inductance was measured "further away" and more indirectly in the lab hardware.
+
+---
+
+This same process was now completed for a shunt voltage peaking at ~200mV.
+
+#### Q4: Save shunt and drain voltage measurements and plot them in Jupyter
+
+```{python}
+# Begin working with 200mv shunt voltage
+
+[q4_data, _, _] = read_rigol_csv("data/q4_2.csv")
+
+plt.figure()
+fig, ax1 = plt.subplots()
+
+ax1.plot(q4_data["X"], q4_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+ax2 = ax1.twinx()
+ax2.plot(q4_data["X"], q4_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.xlim(-0.2e-5, 2.2e-5)
+plt.title("Voltage over Time with Custom Inductor (Vsh peak = 200 mV)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+
+left_bound_q4 = 1.45e-5
+right_bound_q4 = 1.85e-5
+plt.axvline(x = left_bound_q4, linestyle='--', color='r', label="Lower Slope Limit")
+plt.axvline(x = right_bound_q4, linestyle='--', color='r', label="Upper Slope Limit")
+```
+
+#### Q5: Note the current output supplied by the power supply as well as the output voltage.
+- **Power Supply Current:** 0.71A
+- **Output Voltage:** 7.35V
+
+#### Q6: Calculate inductance values from these measurements.
+
+The same process and math using the slope of $V_{shunt}$ as described in question 3 can be used to calculate the slope for these measurements.
+
+```{python}
+OUTPUT_VOLTAGE_Q4 = 7.35
+
+ind1 = np.where(q4_data["X"] > left_bound_q4)[0][0]
+ind2 = np.where(q4_data["X"] > right_bound_q4)[0][0]
+
+Vsh_diff_q4 = np.gradient(q4_data["CH1"][ind1:ind2], q4_data["X"][ind1:ind2])
+
+slope = Vsh_diff_q4.mean()
+
+dL = (1/0.05) * slope
+
+Vl = 18 - OUTPUT_VOLTAGE_Q4
+
+inductance_q4 = (Vl)/dL
+
+print(f"Inductance (H): {inductance_q4}")
+```
+
+Here, the inductance measurement is slightly higher - $18.6 \mu H$ rather than $18.3 \mu H$, although this value is still within and closer to the accepted value and range of $20 \mu H +0\%/-20\%$.
+
+#### Q7: Document any chances made to the inductor design.
+As our inductor was in-spec on the initial test, no further changes were required for our design.
+
+#### Q8: Analyze the potential causes for why the initial design did not meet the desired specifications.
+
+While the inductor did fit within the desired specifications, there are several possible reasons why the measured inductor value was slightly less than that of our calculated design. While we considered some resistive loss of the inductor in our choice of magnet wire, we did not look in-depth at the impacts the skin effect may have on the inductor's construction. The skin effect can cause a lower inductance in an inductor. Further, given this was our first time winding an inductor, our windings were not perfect as possibly contributed to a lower maximal magneto-motive force given the winding loss and our not-perfectly-consistent windings and potential overlapping.
+
+In addition, it is possible we don't know the "true" value of the inductance. Our calculations based upon the lab hardware measure the inductor voltage indirectly and assume somewhat ideal surrounding components, which is not true in the real world. Further, even the LCR meter is quite old and likely has not been calibrated in many, many years, possibly leading to an incorrect measurement in either direction here.
+
+#### Q9: Produce a final drawing for the inductor that meets that required specifications.
+
+A hand-drawn technical drawing of the inductor as assembled with noted requirements is shown below.
+
+![Inductor technical drawing as assembled](images/tech_drawing_image.png)
+
+#### Q10: Update digital twin with actual inductance value, simulate the test operating conditions, and compare measured with simulated waveforms.
+
+Given the slight variation in measured values for the inductance in the lab, the value from the LCR meter as measured in the pre-lab construction ($19.3 \mu H$) was used in the simulation.
+
+$V_{comp}$ as the subsequent output voltage in the digital twin was set based upon the measured output voltage in Q1, 2.96V. The resulting waveform is shown below.
+
+![PLECS output for 2.96V voltage](images/q9_comp_1.png)
+
+Several observations are noted below when compared to the graph shown in question 1.
+- As discussed in the previous lab, the large peaks when switching states of the transistor, alongside the oscillation observed in the drain voltage's middle state, are not present in the PLECS model, given the PLECS model does not simulate the electromagnetic interference and noise that is present in the real lab hardware.
+- The shunt voltage is a little more than 10mV less in the simulation than in the real hardware. This difference can be attributed to the greater current passing through the shunt resistor in the real lab hardware due to using non-ideal components elsewhere throughout the circuit.
+- The drain voltage is slightly lower in the lab hardware than in the simulation. While the simulation outputs a perfectly constant 18V, the lab hardware fluxuated sightly around 16.8/17V. This lower voltage can also be explained by the use of non-ideal components in the real lab hardware.
+- The duty cycle is identical between both resulting outputs at 50kHz.
+- The output voltage of the PLECS digital twin is slightly lower at 2.91 volts, although this different of only 50mV is quite minor.
+
+#### Q11: Use your measurements to plot the Lambda [Vs] versus Current [A] characteristic of your inductor. You will need to integrate the voltage measurement to obtain lambda.
+
+
+First, the voltage across the inductor can be found:
+- The voltage flowing into the inductor is equal to the input voltage (18V) minus the output voltage (7.35, since I'm using our data from question 4).
+- The voltage flowing out of the inductor is equal to the drain voltage plus the shunt voltage.
+- In total, $ V_L = V_{in} - V_{out} - V_{drain} - V_{shunt} = 18 - 7.35 - V_{drain} - V_{shunt}$
+
+Next, lambda can be defined as $ V_L = \frac{d \lambda}{dt} $. As such, the integral of $V_L$ can be taken to find lambda. The cumulative trapezoidal method is used to calculate this discrete integral in the code block below.
+
+From this data, the current can be calculated based upon the definition of inductance, $V_L = L \cdot \frac{dI}{dt} $. $V_l$ can once again be integrated to solve for L, so our previously calculated lambda value is divided by the inductance to reach the current.
+
+These two quantities can then be plotted against each other. The slope of this line can be verified to be the inductor's inductance, relating these two quantities with the equation $ \lambda = L \cdot I $.
+
+```{python}
+from scipy.integrate import cumulative_trapezoid
+
+[q4_data, d0, dt] = read_rigol_csv("data/q4_2.csv")
+
+q4_data["Vl"] = 18 - 7.35 - q4_data["CH2"]
+
+q4_data["timestep"] = (q4_data["X"] * dt) + d0
+
+lambda_int = cumulative_trapezoid(q4_data["Vl"], q4_data["timestep"])
+
+q4_data["lambda"] = np.insert(lambda_int, 0, 0)
+
+q4_data["I"] = q4_data["lambda"] / inductance_q4
+
+plt.figure(figsize=(5, 5))
+plt.subplot(3, 1, 1)
+plt.plot(q4_data["X"], q4_data["Vl"])
+plt.title("Inductor Voltage")
+plt.xlabel("Time (s)")
+plt.ylabel("Voltage (V)")
+plt.subplot(3, 1, 2)
+plt.plot(q4_data["X"], q4_data["I"])
+plt.title("Inductor Current")
+plt.xlabel("Time (s)")
+plt.ylabel("Current (A)")
+plt.subplot(3, 1, 3)
+plt.title("Lambda")
+plt.xlabel("Time (s)")
+plt.ylabel("Lambda (V • S)")
+plt.plot(q4_data["X"], q4_data["lambda"])
+plt.tight_layout()
+
+
+plt.figure()
+plt.plot(q4_data["I"], q4_data["lambda"])
+plt.title("Lambda vs Current Characteristic of Custom Inductor")
+plt.xlabel("Current (A)")
+plt.ylabel("Lambda (V•s)")
+
+
+inductance_slope =  (q4_data["lambda"][100] - q4_data["lambda"][50]) / (q4_data["I"][100]- q4_data["I"][50])
+print(f" Calculated slope (inductance: {inductance_slope}")
+```
+
