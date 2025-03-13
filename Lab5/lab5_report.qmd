@@ -1,0 +1,309 @@
+---
+title: Power Electronics Lab 5 Report
+jupyter: python3
+---
+
+## Carter Harris
+---
+## Pre-Lab Writeup
+The lab prep documented specified a flyback converter with the following values:
+- Input voltage Vg = 18 V
+- Output voltage Vo = 10 V
+- Output power Pout = 20 W
+- Switching frequency fs = 50 kHz
+- Duty cycle D = 35%
+- $\alpha$ = 70%
+- Assume 60 uF for the output capacitance C
+- 5 $\Omega$ is used for the output resistance R to match our lab load resistor
+
+From these values, the following can also be calculated
+- Voltage conversion ratio, M = 10/18
+- Switching period, $T_s = \frac{1}{fs}$
+
+However, to properly create a digital twin, the following specifications must also be determined:
+- Turns ratio a
+- Magnetizing inductance, L
+
+Given that the critical inductance ratio, $\alpha$, is less than one, we know the flyback converter operates in discontinuous current mode (DCM). As such, the turns ratio is defined as $$a_{DCM} = \frac{V_o}{V_g} \cdot \frac{\sqrt{\alpha} - D}{D} $$
+
+Our known values stated above can be plugged into this equation as follow: $a_{DCM} = \frac{10}{18} \cdot \frac{\sqrt{0.7} - 0.35}{0.35} = 0.7725 $. As such, the turns ratio of the inductor, $\frac{N_s}{N_p}$, where $N_p$ is the number of turns on the primary side (input) and $N_s$ is the number on the secondary (output) side, must be equal to 0.7725.
+
+The magnetizing inductance for our DCM flyback converter can be found with the following equation from a buck-boost converter (which a flyback converter can be broken down to): $$ D_{DCM}  = \sqrt{K} \cdot M, K = \frac{2}{T_s} \cdot \frac{L}{R} $$ 
+
+This equation can be rearranged to solve for L: $ L = \frac{T_s \cdot R}{2} \cdot (\frac{D}{M})^2 $. Substituting the above values into this equation results in $ L = \frac{{50e3}^{-1} \cdot 5}{2} \cdot (\frac{0.35}{0.\overline{55}}^2) = 19.8 \mu H $
+
+Finally, given all above values, the peak current, $i_{pk} $, can be found: $$ i_{pk} = \sqrt{K} \cdot T_s \cdot \frac{V}{L} = \sqrt{\frac{2}{{50e3}^{-1}} \cdot \frac{19.8e-6}{5}} \cdot \frac{1}{50e3} \cdot \frac{V_o}{19.8e-6} = 6.35 amps $$
+
+
+The above calculations were verified using the PLECS model using a UC2844 IC. $V_{comp}$ to control this IC was set using the formula found experimentally in Lab 3 to convert from a given $i_{pk}$ value to the nessesary $V_{comp}$ voltage, which works in our DCM operating mode for flyback and well as buck converters.
+
+The output voltage is is slightly less than the desired 10V at 9.85V. However, this difference is minimal.
+
+![Pre-lab PLECS schematic showing the flyback converter](images/pre-plecs.png)
+
+The initialization script is included below:
+
+
+```{python}
+fs = 50e3;
+ts = 1/fs;
+
+R = 5;
+Vo = 10;
+Vg = 18;
+alpha = 0.70;
+d = 0.35;
+
+M = Vo/Vg;
+
+L = ((ts*R)/2) * (d/M)^2;
+a = (Vo/Vg)*((sqrt(alpha) - d)/d);
+
+K = (2/ts)*(L/R);
+
+Ipk = sqrt(K)*ts*(Vo/L);
+
+Vcomp = (3/20)*Ipk + (13/10);
+```
+
+---
+
+## Task 1
+
+We began by reconfiguring the lab hardware for flyback operation. This involved switching the bottom jumper to flyback (JP7 -> JP8) and moving the diode from D7 to D8. We then installed the provided transformed
+
+#### Q1: Make note of the test transformer label.
+
+- We used test transformer T5.
+
+
+The complete test setup is shown in the image below:
+
+![Task 1 setup](images/t1_setup.png)
+
+First, shunt voltage, $V_{sh}$, and drain voltage, $V_{drain}$, were measured with the scope for an output voltage set to 4V, 7V, and 9V. The resulting waveforms are shown below.
+
+### 4V Output.
+
+**Q3 Exact Voltage & Output Current:** Input current is 0.28A, while the output voltage is 4.156V.
+
+```{python}
+from rigol import read_rigol_csv
+from matplotlib import pyplot as plt
+import pandas as pd
+
+[t1_4_data, t1_4_d0, t1_4_dt] = read_rigol_csv("data/t1_4.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t1_4_data["X"], t1_4_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(-0.5e-5, 2.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t1_4_data["X"], t1_4_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Flyback Voltage over Time (Vout = 4V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+```
+
+### 7V Output
+**Q3 Exact Voltage & Output Current:** Input current is 0.76A, while the output voltage is 7.03V.
+
+```{python}
+[t1_7_data, t1_7_d0, t1_7_dt] = read_rigol_csv("data/t1_7.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t1_7_data["X"], t1_4_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(-0.75e-5, 2.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t1_7_data["X"], t1_7_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Flyback Voltage over Time (Vout = 7V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+```
+
+### 9V Output
+When attempting to set for a 9V output voltage, we experienced some rather strange behavior with our flyback converter. Once we reached a potentiometer position corresponding to around 8.5V, the flyback converter appeared to become somewhat unstable. The transformer would start producing a verb noticeable buzzing noise and the output voltage would drop by around 1.2V. The resulting output waveforms are shown in a scope capture below:
+
+![Instability scope screenshot](images/unstable.png)
+
+The above-shown behavior happened regardless of the scope trigger behavior. Upon briefly troubleshooting with the instructor, we were unable to determine a cause for this instability. While current control can become unstable above a 50% duty cycle, our duty cycle is much below that 50% threshold, not to mention that the UC2844 can not exceed a 50% duty cycle. However, after leaving the flyback converter at an output voltage configuration slightly below that at which the instability was initially observed for some time (a few minutes), we were able to creep the voltage up close to the desired 9V output. This final output of 8.80V is reflected in our measured data graphed below
+
+**Q3 Exact Voltage & Output Current:** Input current is 1.16A, while the output voltage is 8.80V.
+
+```{python}
+[t1_9_data, t1_9_d0, t1_9_dt] = read_rigol_csv("data/t1_9.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t1_9_data["X"], t1_9_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(-0.75e-5, 2.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t1_9_data["X"], t1_9_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Flyback Voltage over Time (Vout = 9V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+```
+
+
+---
+## Task 2
+
+Next, for task 2, the scope probes were connected to $V_{inj-}$ and $V_{dd}$, which are connected to the positive and negative side of the output resistor, respectively. These two values can be used to calculate the output capacitance.
+
+When reviewing these measurements, it is important to note that the signal from $V_{inj-}$ was collected in regular DC coupling mode on the oscilloscope, whereas $V_{dd}$ was measured in AC coupling mode. In AC coupling mode, the DC signal is filtered out such that the AC components of the signal are centered around zero.
+
+These measurements were taken for an output voltage of 4V, 7V, and 9V. Exact output voltages and supply current are noted in the appropriate section.
+
+### 4V Output
+
+For the 4V output, the actual output voltage was 4.01V while the output current is 0.28A.
+
+A rolling mean is applied to make the overlapping graphed data more readable
+
+```{python}
+[t2_4_data, t2_4_d0, t2_4_dt] = read_rigol_csv("data/t2_4.csv")
+
+t2_4_data['CH1'] = t2_4_data['CH1'].rolling(10).mean()
+t2_4_data['CH2'] = t2_4_data['CH2'].rolling(10).mean()
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t2_4_data["X"], t2_4_data["CH1"], label="Vinj-", linestyle="-")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Vinj- (V)")
+
+#plt.xlim(-0.75e-5, 2.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t2_4_data["X"], t2_4_data["CH2"], label="Vdd", color='tab:orange', linestyle="dotted")
+ax2.set_ylabel("Vdd (V, AC comp.)")
+
+plt.title("Flyback Output Voltages over Time (Vout = 4V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='lower center')
+```
+
+### 7V Output
+
+The exact same process is completed for the 7V output. For the 7V output, the exact output voltage was 7.11V, while the input current was 0.78A.
+
+```{python}
+[t2_7_data, t2_7_d0, t2_7_dt] = read_rigol_csv("data/t2_7.csv")
+
+t2_7_data['CH1'] = t2_7_data['CH1'].rolling(10).mean()
+t2_7_data['CH2'] = t2_7_data['CH2'].rolling(10).mean()
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t2_7_data["X"], t2_7_data["CH1"], label="Vinj-", linestyle="-")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Vinj- (V)")
+
+#plt.xlim(-0.75e-5, 2.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t2_7_data["X"], t2_7_data["CH2"], label="Vdd", color='tab:orange', linestyle="-.")
+ax2.set_ylabel("Vdd (V, AC comp.)")
+
+plt.title("Flyback Output Voltages over Time (Vout = 7V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper left')
+```
+
+### 9V Output.
+Finally, the same process was completed for a 9V output. A similar instability as described in task 1 was initially observed when attempting to take this measurement. However, following the same procedure of waiting and slowly creeping up the output voltage as described in Task 1, an actual output voltage of 8.99V and output current of 1.16A was achieved.
+
+```{python}
+[t2_9_data, t2_9_d0, t2_9_dt] = read_rigol_csv("data/t2_9.csv")
+
+t2_9_data['CH1'] = t2_9_data['CH1'].rolling(10).mean()
+t2_9_data['CH2'] = t2_9_data['CH2'].rolling(10).mean()
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t2_9_data["X"], t2_9_data["CH1"], label="Vinj-", linestyle="-")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Vinj- (V)")
+
+#plt.xlim(-0.75e-5, 2.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t2_9_data["X"], t2_9_data["CH2"], label="Vdd", color='tab:orange', linestyle="-.")
+ax2.set_ylabel("Vdd (V, AC comp.)")
+
+plt.title("Flyback Output Voltages over Time (Vout = 9V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper left')
+```
+
+#### What's happening here?
+- The slight noise seen halfway through the capacitor's discharge cycle is when the transistor turns on.
+- When the transistor is on, the input and output are completely disconnected as the transformer builds up stored magnetic energy. In this period, only the capacitor is supplying power to the output and it discharges.
+- When the transformer is fully charged and the output voltage bottoms out, the transistor turns off. Stored magnetic energy from the transformer begins to flow into both the output and to charge the capacitor. This is the charge-up period seen after the small noise spike at the lowest voltage potential point.
+- Given the flyback converter is operating in discontinuous current mode, there reaches a point when the transformer is completely discharged and/or can not supply the required current to maintain the output voltage (given the output resistance and Ohm's Law). This state is the point at which we see the capacitor voltage peak, after which the capacitor begins to discharge to supply the necessary current to the output.
+- The cycle then continues to the first stage as the capacitor discharges and repeats.
+---
+
+## Post-Lab Analysis
+
+#### Q7: Use the shunt voltage measurements taken to determine the magnetizing inductance of the test transformer.
+
+To begin, given that we were using a $0.05 \Omega$ shunt resistor, we can use Ohm's Law to calculate the drain current.
+
+```{python}
+t1_4_data["I"] = (t1_4_data["CH1"] / 0.05).rolling(10).mean()
+plt.plot(t1_4_data["X"], t1_4_data["I"])
+plt.title("Flyback Drain Current (Vout = 4V)")
+plt.xlim(-0.5e-5, 0.5e-5)
+```
+
+Looking at the measurements from this data, we can extract a peak drain current (ignoring the spike & oscillations after the transistor turns off) of 3.06 amps. The peak current of the flyback converter operating in DCM (as further described in the pre-lab assignment) is $$ i_{pk} = \sqrt{K} \cdot T_s \cdot \frac{V}{L}, K = \frac{2}{T_s} \cdot \frac{L}{R} $$
+
+With some [Wolfram-Alpha magic](https://www.wolframalpha.com/input?i=i+%3D+sqrt%28%282%2Ft%29*%28l%2Fr%29%29+*+t+*+%28v%2Fl%29%2C+solve+for+l&assumption=%22i%22+-%3E+%22Variable%22), this equation solved for L equals: $$ L = \frac{2 \cdot T_s \cdot {V_o}^2}{{i_{pk}}^2 \cdot R} $$
+
+Solved using our known values of a 50 kHz frequency, $5 \Omega$ load resistance, and 4.156V output voltage results in $ L = \frac{2 \cdot {50e3}^{-1} \cdot 4.156^2}{3.06^2 \cdot 5} = 14.8 \mu H$ magnetizing inductance.
+
+#### Q8: Use the drain measurement to determine the turns ratio 'a' of the transformer.
+
+Given that we have established the flyback converter is operating in DCM, the turns ratio $a_{DCM}$ is defined as $$a_{DCM} = \frac{V_o}{V_g} \cdot \frac{\sqrt{\alpha} - D}{D} $$ where D is the duty cycle and $\alpha$ is the critical inductance ratio.
+
+First is calculating $\alpha$, for which knowing the critical inductance is necessary. The critical inductance is defined as $$ L_{crit} = {(\frac{1}{M + 1})}^2 \cdot R \cdot \frac{T_s}{2} $$ where M is the voltage output ratio, $M = \frac{V_o}{V_g}$. Substituting in all known values and solving results in $ L_{crit} = {(\frac{1}{0.230\overline{8} + 1})}^2 \cdot 5 \cdot \frac{1}{2 \cdot 50e3} = 33.0 \mu H $. The resulting critical inductance ratio based on the magnetizing inductance calculated in Q7 is $ \alpha = \frac{14.8e-6}{33.0e-6} = 45\% $.
+
+The only remaining necessary value is the duty cycle of the transistor. It would be easiest to collect this parameter using the Measure All function of the oscilloscope. However, I didn't think to do this in-lab, so the duty cycle can instead be extracted from the measured drain voltage response. We know the transistor is on when the drain voltage is pulled to ground (approx. to <1 volt), excluding the oscillation when the transistor turns off (hence the > -5 volt condition). From this, we can create a square wave of when the transistor is on. From this square wave, we can apply a derivative to find the exact points the switching occur. Finally, the on time between the points where the transistor switches on and switches off can be compared to the time between cycles (measured between two switch on points) to calculate the duty cycle.
+
+```{python}
+import numpy as np
+
+t1_4_data["on"] = (t1_4_data["CH2"] < 1) & (t1_4_data["CH2"] > -5)
+t1_4_data["switch"] = list(np.diff(t1_4_data["on"].astype(int))) + [0]
+plt.plot(t1_4_data["X"], t1_4_data["on"])
+plt.title("On Cycle of Flyback Transistor (4V)")
+
+switch_on_indices = t1_4_data.index[t1_4_data["switch"] == 1].tolist()
+switch_off_indices = t1_4_data.index[t1_4_data["switch"] == -1].tolist()
+
+duty_cycle = (
+    (t1_4_data["X"].iloc[switch_off_indices[0]] - t1_4_data["X"].iloc[switch_on_indices[0]]) / 
+(t1_4_data["X"].iloc[switch_on_indices[1]] - t1_4_data["X"].iloc[switch_on_indices[0]])
+)
+
+print(duty_cycle * 100)
+```
+
+For a 4V output, the duty cycle is 14.3%.
+
+Finally, all calculated values can be plugged into the original $a_{DCM}$ equation stated above which results in $a_{DCM} = \frac{4.156}{18} \cdot \frac{\sqrt{0.45} - 0.143}{0.143} = 0.8522 $. Therefore, the turns ratio is 0.85.
+
