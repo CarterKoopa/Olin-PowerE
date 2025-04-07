@@ -1,0 +1,312 @@
+---
+title: Lab 6 Report
+jupyter: python3
+---
+
+
+## Carter Harris
+
+---
+## Pre-Lab Writeup
+
+For designing our inductor, the following specifications were given:
+- Input voltage, $V_g$, of 18V.
+- Output voltage, $V_o$, of 10V.
+- Output power, $P_{out}$, of 20W.
+- Switching frequency of 50kHz.
+- Duty cycle D = 35% (min 30%).
+- $\alpha$ = 70% (min 60%). 
+- Max peak flux density of 300 mT.
+
+Assembling the transformer requires the following parameters:
+- Number of turns
+- Turns ratio
+- Shim thickness
+
+Both team members completed all of the following calculations independently, verifying with each other along the way.
+
+The first required calculation is the turns ratio, as it is necessary to complete other calculations. Given our converter will be operating in discontinuous current mode (DCM), the turns ratio, $a$, of a flyback converter is defined as $$ a_{DCM} = \frac{V_o}{V_g} \cdot \frac{\sqrt{\alpha} - D}{D} $$, where each parameter is as defined in the specifications above. Substituting in our known values, the required turns ratio is: $ a_{DCM} = \frac{10}{18} \cdot \frac{\sqrt{0.7} - 0.35}{0.35} = 0.77$.
+
+Next, I continued by calculating the required magnetizing inductance of the inductor. This inductance can be found by working backwards from the critical inductance. The critical inductance for a flyback converted is defined as $$ L_{crit} = (\frac{1}{M + 1})^2 \cdot R \cdot \frac{T_s}{2} $$ where $R$ is the output resistance, $T_s$ is the switching period, and $M$ is the voltage conversion ratio. However, this math is not as simple as plugging in our known $V_o$ and $R$ values. As this formula originates from the Buck-Boost converter, these voltages are relative to the input side of the transformer. Given we only care about/know the resistance and output voltage on the output side of the transformer, these must be converted back using the above-calculated turns ratio.
+
+As such, the given we have a $ 5 \Omega$ resistor on the output, the value seen on the opposite side of the transformer is equal to $ R = \frac{1}{a^2} R_o = \frac{1}{0.77^2} 5 = 8.43 $ ohms. Similar math can be completed for the output voltage, such that $ V = \frac{1}{a} V_o = \frac{1}{0.77} \cdot 10 = 12.99 $, or a voltage conversion ratio M of 0.72.
+
+Returning to our original critical inductance equation, this results in a critical inductance of $ L_{crit} = (\frac{1}{0.72 + 1})^2 \cdot 8.43 \cdot \frac{{50e3^{-1}}}{2} = 28.4 \mu H $. Based upon our $\alpha$, or critical inductance ratio, of 0.7, the actual magnetizing inductance of the inductor should be $ L = L_{crit} * \alpha = 0.7 \cdot 28.4e-6 = 19.95 \mu H$.
+
+Next, the actual number of turns must be calculated. Much like the buck and buck-boost converter, the minimum number of turns is defined such that $$ N \geq \frac{L_{max} \cdot i_{max}}{\phi_{max}} $$ where $L_{max}$ is the magnetizing inductance, $i_{max}$ is the max current, and $\phi_{max}$ is the max magnetic flux density. The magnetizing inductance, $L$, is known from the previous calculation. The max flux density, $\phi_{max}$ can be calculated based upon the provided peak flux density of 300 mT and the known minimum core cross-section area of $59.1 mm^2$ from the ferrite core's datasheet such that $ \phi_{max} = B_{max} \cdot A = 0.3 \cdot 5.91e\text{-}5 = 1.773e\text{-}5 $ T/m^2 (converting to SI units).
+
+To complete this calculation, the peak current also must be calculated. For a buck-boost converter operating in DCM, the peak current is equal to $$ i_{pk} = \frac{2}{\sqrt{\alpha}} \cdot (M + 1) \cdot \frac{V}{R} $$ However, this equation relies on the un-transformed voltages and resistances, so the converted values from either side of the transformer calculated above must be used. As such, plugging in our known values results in $ i_{pk} = \frac{2}{\sqrt{0.7}} \cdot (0.72 + 1) \cdot \frac{12.99}{8.43} = 6.33 $ amps.
+
+Given this calculation, we have all the pieces to calculate our minimum number of turns. As such, this equals $ N \geq \frac{19.95e\text{-}6 \cdot 6.33}{1.773e\text{-}5} = 7.122 $. Rounded up since we can't have partial turns, this results in a minimum of 8 turns.
+
+We chose to increment this to 9 turns, as with our 0.77 turns ratio, the math worked quite nicely to result in a 9-to-7 turn ratio.
+
+The final required calculation was our shim thickness. This calculation is based upon the permeance of the transformer/inductor, which is defined as $$ P = \frac{L}{N^2} $$ where N is the number of turns. Plugging in our calculated values results in $ P = \frac{19.95e\text{-}6}{9^2} = 24.63e\text{-}8 $.
+
+From this, the length of gap (of which each shim should be half) is equal to $$ l = \frac{\mu_o \cdot A}{P} $$ where $\mu_o$ is the permeability of free space (given we are only concerned with the permeability of our gap), $1.26e\text{-}6$, and P is the previously calculated permeability. A is the cross-sectional area of our core gap. However, this area requires some additional calculation to account for the fringing of the magnetic field beyond the core. To account for fringing, a band can be added to the entire core's cross section the width of the intended gap thickness, with the resulting area being used in the above formula. Based upon the datasheet, the perimeter of the core's cross section is 0.104m.
+
+Adding the perimeter to the area, alongside some algebra, results in the equation $ l = \frac{\mu_o \cdot A}{P} \cdot \frac{1}{1 - P_c} $, where $P_c$ is the perimeter of the core. Substituting known values, $ l = \frac{1.26e-6 \cdot 6.26e-5}{24.63e-8} \cdot \frac{1}{1 - 0.104} = 0.000357$ m, or 0.014 inches. Given each shim should account for half of this gap (as the gap includes the entire circular loop around the core), the thickness of each shim should be 0.007in.
+
+The final calculation involved calculating what gauge of wire to use for the windings. For this process, we used the same process as designing the inductor by assuming the worst-case BCM RMS peak current through the transformer. As such, the peak RMS current was defined as $ i_{pk} = \sqrt{\frac{1}{3}} \cdot i$. As previously calculated, the peak current is equal to 6.33. As such, $i_{pk} = \sqrt{\frac{1}{3}} \cdot 6.33 = 3.65A$. Based upon this value, the minimum diameter of the wire such that the density is less than the required $10A/mm^2$ is equal to $ d = 2 \cdot \sqrt{\frac{0.365}{\pi}} = 0.68mm $. As the 22 AWG wire is slightly too small at 0.644mm, we used 20AWG wire with a thickness of 0.812mm.
+
+To summarize, our inductor had:
+- A 9-7 turns ratio/number of turns
+- 0.008" shim thickness
+
+In regards to the peak energy stored, the peak energy stored in a buck-boost converter (of which the flyback converter can be simplified) is equal to $E_{DCM} = T_s \cdot \frac{V^2}{R}$. Using all of our calculated values, this results in $E_{DCM} = \frac{1}{50e3} \cdot \frac{12.99^2}{8.43} = 0.4e\text{-}3$.
+
+#### Assembly
+
+A selection of photos of the assembly process is shown below. We both took turns with the various assembly steps and completed them together.
+
+Of note, we used a bifilar winding pattern for the primary and secondary windings to reduce the leakage inductance of the transformer. Pins are connected as specified in the included technical drawing.
+
+![Inductor winding](images/winding_small.jpg)
+
+![Inductor shimming](images/shimming_small.jpg)
+
+After assembly, we tested our inductor using the LCR meter, obtaining an actual inductance of $19.13 \mu H$ - very close to our calculated $19.95 \mu H$, with an error of about -4%.
+
+![LCR Meter reading](images/meter.jpeg)
+
+---
+
+
+
+## Execution
+
+#### Q1, Q2, and Q3: Graph shunt and drain voltage measurements at 4V, 7V, and 10V outputs and note the actual output voltages.
+
+**4V Output:** For the 4V output, our actual output was 3.995V with a 0.26A current draw.
+
+```{python}
+from rigol import read_rigol_csv
+from matplotlib import pyplot as plt
+import pandas as pd
+
+[t1_4_data, t1_4_d0, t1_4_dt] = read_rigol_csv("data/t1_4.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t1_4_data["X"], t1_4_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(1.6e-5, 4.4e-5)
+ax2 = ax1.twinx()
+ax2.plot(t1_4_data["X"], t1_4_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Flyback Voltage over Time (Vout = 4V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+```
+
+**7V Output:** For the 7V output, our actual output voltage was 6.99V with a 0.69A input.
+
+```{python}
+[t1_7_data, t1_7_d0, t1_7_dt] = read_rigol_csv("data/t1_7.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t1_7_data["X"], t1_4_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(1.5e-5, 4.4e-5)
+ax2 = ax1.twinx()
+ax2.plot(t1_7_data["X"], t1_7_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Flyback Voltage over Time (Vout = 7V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+```
+
+##### 10V Output
+
+For the 10V output, we again experienced the strange behavior observed during Lab 5 where our flyback converter became unstable above roughly 9V. Above this voltage, the output dropped about 2V, and the inductor was start vibrating and humming. This prevented us from reaching the desired 10V output.
+
+In consultation with the teaching team, we first investigated whether there was an issue in the RC filter configuration for the current sense going into the UC2844. We had doubts that the capacitor value could possibly be incorrect. During the lab period, we replaced the capacitor with another capacitor from the correct 220pF bin in the lab hardware assembly supplies. However, this did not fix our problem. Further attempts to work around this issue, including using the CA board (which provided no output) and another lab team's board (which for an unknown reason fried the MOSFET), also did not provide a resolution. As such, we collected all data at the maximum 9V our flyback converter would go.
+
+To resolve this issue for future labs, we have some suspicion that both the replacement capacitor and original capacitor we used are incorrect values and got cross-contaminated from the bin next door in the parts box. We experienced weird issues trying to test the capacitors on the board with the LCR meter and got inconsistent results, but believe their is a possibility the value is still wrong. However, we have been unable to once again replace the capacitor given issues accessing MAC306 (there were design reviews for another class or other class sessions both times we tried to grab our supplies). As such, this problem remains to be further investigated and tested before the next lab.
+
+The outputs with our 9V max are shown below. The actual output voltage was 8.96V with a current input of 1.11A.
+
+```{python}
+[t1_9_data, t1_9_d0, t1_9_dt] = read_rigol_csv("data/t1_9.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(t1_9_data["X"], t1_9_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(1.2e-5, 4.5e-5)
+ax2 = ax1.twinx()
+ax2.plot(t1_9_data["X"], t1_9_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Flyback Voltage over Time (Vout = 9V)")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+```
+
+#### Q4: Capture and plot the high-frequency oscillations occurring at FET turn-off on Vd.
+
+```{python}
+[vd_hi_data, _, _] = read_rigol_csv("data/t1_hi.csv")
+
+plt.plot(vd_hi_data["X"], vd_hi_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Drain Voltage High-Frequency Oscillations")
+```
+
+#### Q5: Capture and plot the low-frequency oscillations at the diode turn-off on the drain voltage.
+
+```{python}
+[vd_lo_data, _, _] = read_rigol_csv("data/t1_lo.csv")
+
+plt.plot(vd_lo_data["X"], vd_lo_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Drain Voltage Low-Frequency Oscillations")
+```
+
+#### Q6: Calculate the magnetizing inductance value of your transformer and verify the turns ratio from the measurements.
+
+For this lab, I tried to take a more direct approach to calculate the magnetizing inductance. To this end, I used the current thru the shunt resistor as the inductor charges its magnetic field and the definition of an inductor, $V_L = L \cdot \frac{dI_L}{dt} $. In this scenario, the current through the shunt resistor is equal to the curren thru the inductor given there is a single loop in the circuit. Further, $V_L = V_g $.
+
+```{python}
+import numpy as np
+
+t1_9_data["I"] = t1_9_data["CH1"] / 0.05
+
+ind1 = 11500
+ind2 = 14000
+
+plt.figure()
+plt.plot(t1_9_data["X"], t1_9_data["I"], label="I_L", color='tab:orange', linestyle="-")
+plt.ylabel("Shunt Current (A)")
+plt.xlim(3e-5, 4.2e-5)
+
+plt.axvline(x = t1_9_data["X"][ind1], linestyle='--', color='r', label="Lower Slope Limit")
+plt.axvline(x = t1_9_data["X"][ind2], linestyle='--', color='r', label="Lower Slope Limit")
+plt.title("Shunt Current with Slope Bounds")
+
+Il_diff = np.gradient(t1_9_data["I"][ind1:ind2], t1_9_data["X"][ind1:ind2])
+slope = Il_diff.mean()
+
+inductance = 18 / slope
+
+print(f"Calculated Inductance: {inductance} H")
+print(f"Critical Inductance: {inductance / 28.4e-6}") 
+```
+
+This calculation results in an inductance of $17.3 \mu H$. This value is slightly lower than that of what we measured on the LCR meter at $19.1 \mu H$. However, based upon the pre-lab calculations, this still represents an alpha ratio of 61%, which is within the required specification (a minimum of 60%).
+
+Based upon this value, the turns ratio can also be verified based upon the equation $$a_{DCM} = \frac{V_o}{V_g} \cdot \frac{\sqrt{\alpha} - D}{D} $$
+
+The other needed value is the duty cycle. This value can be extracted using the 'measure all' function on the oscilloscope, the output of which is shown below:
+
+![Rigol measure all output](images/4v_measure.png)
+
+As shown, the duty cycle is 33%, within the accepted range of 30-35%. 8.96 is substituted in for $V_o$ since this was the maximum output voltage our converter achieved. Plugging all other values into the above equation results in: $ a_{DCM} = \frac{8.96}{18} \cdot \frac{\sqrt{0.61} - 0.33}{0.33} = 0.69 $. This calculated value represents an error of about 0.08 from the actual 9-to-7 turns ratio (0.77).
+
+#### Q7: Refine the inductor design to meet the required specifications.
+
+While our alpha ratio was a little low, all values of the transformer were within the allowable spec. As such, no changes were made to the design.
+
+
+#### Q8: Analyze the potential causes for why the initial design transformer did not meet the required specifications.
+
+Our transformer met the required specifications.
+
+#### Q9: Plot the ringing waveforms captured at a 10V output and determine the damped natural frequency and the damping ratio for both the waveforms after FET turn-off and diode turn-off.
+
+The damped natural frequency, $\omega_d$, is defined as $ \omega_d = \frac{2\pi}{T_s} $, where $T_s$ is the period between two peaks.
+
+The damping ratio, $\zeta$, is defined as $ \zeta = \frac{\delta}{\sqrt{4\pi^2 + \delta^2}} $, where $\delta$ is defined as $ \delta = \frac{1}{n}\ln{|\frac{x_1}{x_{n + 1}}|} $, where $n$ is the number of peaks, and the ratio within the natural log is the ratio between the amplitude of two peaks.
+
+Each of these values can be extracted with careful analysis of the collected data.
+
+First, starting with the high-frequency oscillations, the waveform is again shown below, now with the various points in consideration highlighted:
+
+```{python}
+plt.plot(vd_hi_data["X"], vd_hi_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+plt.title("Drain Voltage High-Frequency Oscillations")
+
+plt.plot(vd_hi_data["X"][354], vd_hi_data["CH2"][354], marker = 'x', color = 'tab:green')
+plt.plot(vd_hi_data["X"][437], vd_hi_data["CH2"][437], marker = 'x', color = 'tab:green')
+
+t_s = vd_hi_data["X"][437] - vd_hi_data["X"][354]
+amp_ratio = vd_hi_data["CH2"][354] / vd_hi_data["CH2"][437]
+
+print(f"T_s (Period): {t_s}")
+print(f"Amplitude ratio: {amp_ratio}")
+```
+
+Substituting each of the above calculations into the above formulas result in:
+- $\delta = \frac{1}{2}\ln{|1.25|} = 0.111 $
+- The damping ratio: $ \zeta = \frac{0.111}{\sqrt{4\pi^2 + 0.111^2}} = 0.0178 $
+- The damped natural frequency: $ \omega_d = \frac{2\pi}{8.3e\text{-}8} = 75.7 MHz $
+
+
+The same math can be completed for the low-frequency oscillations.
+
+```{python}
+plt.plot(vd_lo_data["X"], vd_lo_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+plt.title("Drain Voltage Low-Frequency Oscillations")
+
+plt.plot(vd_lo_data["X"][1703], vd_lo_data["CH2"][1703], marker = 'x', color = 'tab:green')
+plt.plot(vd_lo_data["X"][2584], vd_lo_data["CH2"][2584], marker = 'x', color = 'tab:green')
+
+t_s = vd_lo_data["X"][2584] - vd_lo_data["X"][1703]
+amp_ratio = vd_lo_data["X"][1703] / vd_lo_data["X"][2584]
+
+print(f"T_s (Period): {t_s}")
+print(f"Amplitude ratio: {amp_ratio}")
+```
+
+Completing the same calculations as above results in:
+- $ \delta = \frac{1}{2}\ln{|0.99|} = 0.005 $
+- The damping ratio: $ \zeta = \frac{0.005}{\sqrt{4\pi^2 + 0.005^2}} = 0.0008 $
+- The damped natural frequency: $ \omega_d = \frac{2\pi}{8.81e\text{-}7} = 7.13 MHz$ 
+
+#### Q10: Based on the measurements, provide evidence that the electrical requirements of the flyback converter are met.
+Going through each specification listed in the pre-lab assignment:
+- **Duty Cycle:** The duty cycle can be measured by extracting the relevant on time from each period of the transistor at each voltage level. The result of each of these calculations is shown below, and none exceed the 35% maximum:
+    - 4V: 14.2% ($2.8 \mu S$ on-time with $20.0 \mu S$ period)
+    - 7V: 25.5% ($5.1 \mu S$ on-time with $20.0 \mu S$ period)
+    - 9V: 32.5% ($6.5 \mu S$ on-time with $20.0 \mu S$ period)
+- **Frequency/Period:** Through the same method as calculating the duty cycle (through manual inspection of the distance between on periods of the transistor), the following periods are measured, all equivilint to the 50 kHz switching frequency:
+    - 4V: $20.0 \mu S$
+    - 7V: $20.0 \mu S$
+    - 9V: $20.0 \mu S$
+
+#### Q11: Based on the measurements, provide evidence that the electrical requirements of the flyback converter are met.
+- **Peak Flux Density (Bmax):** Working backwards from the equation defining the minimum number of turns, $B_{max}$ can be calculated such that $ B_{max} = \frac{L_{max} \cdot i_{max}}{N \cdot A} $. The peak current can be derived from the peak of shunt resistor, the number of turns is equal to 9 in our design, the area is equal to 6.26e-5 m^2, and the inductance used is the inductance measured using the LCR meter (19.2e-6 H). As shown, all values are below the maximum of 300 mT.
+    - 4V: Given a peak current of 3.00A, $ N = \frac{19.2e\text{-}6 \cdot 3}{9 \cdot 6.26e-5} = 101 mT $.
+    - 7V: Given a peak current of 5.28A, $ N = \frac{19.2e\text{-}6 \cdot 5.28}{9 \cdot 6.26e-5} = 180 mT $.
+    - 9V: Given a peak current of 6.25A, $ N = \frac{19.2e\text{-}6 \cdot 6.25}{9 \cdot 6.26e-5} = 213 mT $.
+- **Current Winding Density:** The peak current was calculated based on the shunt voltage for each of the output voltages in the above question. The RMS current from this measurement can be calculated in DCM such that $ i_{RMS} = \sqrt{\frac{D}{3}} \cdot i_{pk} $ utilizing the duty cycle calculated in question 10. The resulting current can be divided by the area of the 20AWG wire, $0.515 mm^2$ based on a 0.81mm diameter, to ensure it is below the $10A_{RMS}/mm^2$ specification. As shown, all values are.
+    - 4V: $ i_{RMS} = \sqrt{\frac{0.142}{3}} \cdot 3.0 = 0.65A $, $ \frac{0.65A_{RMS}}{0.515mm^2} = 1.26A / mm^2 $
+    - 7V: $ i_{RMS} = \sqrt{\frac{0.252}{3}} \cdot 5.28 = 1.54A $, $ \frac{1.54A_{RMS}}{0.515mm^2} = 2.41A / mm^2 $
+    - 9V: $ i_{RMS} = \sqrt{\frac{0.352}{3}} \cdot 6.25 = 2.14A $, $ \frac{2.14A_{RMS}}{0.515mm^2} = 4.15A / mm^2 $
+- **Alpha:** The specified value of alpha was 70%, with a minimum value of 60%. The value of alpha was calculated in question 6, of which that codeblock was re-ran to compute the alpha for each output voltage. Although each are at the limit of 60%, all are within the required specification:
+    - 4V: 60% (inductance of $17.0\mu H$)
+    - 7V: 60% (inductance of $17.0\mu H$)
+    - 9V: 61% (inductance of $17.3\mu H$)
+- **Inductance:** Inductance was calculated above as part of the alpha calculations, and all values were such that they met the alpha specification.
+    - 4V: $17.0\mu H$
+    - 7V: $17.0\mu H$
+    - 9V: $17.3\mu H$
+- **Turns Ratio:** The turns ratio can be calculated using the same formula specified in question 6 using the true output voltage and the alpha values and duty cycles detailed above. The true turns ratio is 0.77 (9 to 7 primary to secondary).
+    - 4V: 0.99
+    - 7V: 0.80
+    - 9V: 0.69
+    - This value is the only value that is outside of the expected specification. Unfortunately, I did not have the time to fully investigate and explain this behavior.
+

@@ -307,3 +307,114 @@ For a 4V output, the duty cycle is 14.3%.
 
 Finally, all calculated values can be plugged into the original $a_{DCM}$ equation stated above which results in $a_{DCM} = \frac{4.156}{18} \cdot \frac{\sqrt{0.45} - 0.143}{0.143} = 0.8522 $. Therefore, the turns ratio is 0.85.
 
+---
+
+Given the above calculations, the PLECS model was updated with the calculated magnetizing inductance and turns ratio. The output and initialization scripts are included below.
+
+![PLECS schematic with updated inductance and turns ratio](images/plecs_schem_post.png)
+
+```{python}
+fs = 50e3;
+ts = 1/fs;
+
+R = 5;
+Vo = 4.156;
+Vg = 18;
+alpha = 0.70;
+d = 0.35;
+
+M = Vo/Vg;
+
+% L = ((ts*R)/2) * (d/M)^2;
+L = 14.8e-6
+%a = (Vo/Vg)*((sqrt(alpha) - d)/d);
+a = 0.85
+
+K = (2/ts)*(L/R)
+
+Ipk = sqrt(K)*ts*(Vo/L)
+
+Vcomp = (3/20)*Ipk + (13/10)
+```
+
+#### Q9: Run simulations corresponding to the measurements taken and compare the waveforms (shape, amplitude, timing, duty cycle) of the shunt voltage, drain voltage, and output voltage.
+
+First, looking at the 4V output graphs:
+
+![PLECS 4v output shunt and drain voltages](images/plecs_4v_sd.png)
+![PLECS 4V output voltage](images/plecs_4v_out.png)
+
+and for comparison, the lab from collected data:
+
+![Lab hardware 4v shunt and drain voltage](images/4v_graph1.png)
+![Lab hardware 4v output voltage](images/4v_graph2.png)
+
+Comparing each of the following metrics:
+- **Shape:** Overall, the big picture shape of both the lab and the simulation is the same. Ths shunt voltage increases linearly as the transistor is on and otherwise rests at zero. The output voltage follows a fairly linear charge and discharge cycle. However, there is a fair amount of noise present in the all of the voltage measurements in lab that isn't present in the simulation. There are (relativly) large oscillations as the transistor turns on in the drain voltage and turns both on and off in the shunt voltage. Small oscillations are observable in the output voltage as the transistor turns on. There is some amount of ringing of the transistor drain voltage starting around halfway through the off cycle and continuing until it turns on.
+- **Amplitude:** Aside from the noise in the lab hardware, the shunt voltage is fairly similar between the lab hardware and simulation, which makes sense as the same threshold value is used in controlling the UC2844 in both scenarios. The drain voltage is also roughly the same between both the lab hardware and the simulation. The second voltage level in the transistor's off period is roughly equal to the average voltage across the ringing period observed before it switches on. The output voltage, on the other hand, is slighly lower, which is to be expected using non-ideal components. Finally, the drain voltage peaks are huge in the lab compared to the simulations. With a 4v output, they reach a ~38V peak, while the push 80V for a higher output voltage. While this is not a problem for our 200V transistor, this could pose a challenging issue if another, lower-power transistor was used.
+- **Timing:** Overall, the timing is the same between both the simulation and the lab hardware.
+- **Duty Cycle:** As calculated above, the duty cycle of the transistor is in lab is 14.3%. Looking at the simulation, the duty cycle is only 12.6%. This slightly higher duty cycle in the lab likely accounts for the difference in using non-ideal components in which the transistor must be on longer and more power must be supplied in order to reach the same output voltage.
+
+Similar behavior is observed in the other voltage level waveforms.
+
+#### Q10: Analyze the comparison and document your observations.
+- Many comparisons are noted in the above descriptions.
+- **Are the simplifying assumptions made in our theoretical study of the flyback inverter valid?** Overall, while there are some variations in the output voltage resulting from real-world loss, the flyback inverter waveforms are the shapes expected and the the output voltage is very close to that of our expected, only varying by about 0.1V. As such, the assumptions we made are valid.
+- **Does the measured peak-current and duty-cycle match the theoretical predictions?** While our measured peak current was 3.06A, our simulation peak current is 2.94, a different of about 0.12A. As discussed above, the duty cycle is sightly higher in lab at 14.3% compared to 12.6%, a difference of 1.7% This difference accounts for the higher power required with non-ideal components.
+- **Identify high frequency oscillations and theorize their possible causes:** Looking closer at the lab measurements, there are high-frequency oscillations noticeable within the large voltage spikes after the transistor turns off. This oscillation is possibly due to the parasitic capacitances of the MOSFET.
+
+#### Q11: Determine the output capacitor value (sum of C20, C21, C22, C23) from the output voltage scope measurements
+
+The definition of capacitance is $ I_c = C\frac{dv}{dt}$, where C is the capacitance. Looking deeper at the 9V measurement, the exact output voltage was 8.99V. Given our $5\Omega$ output resistance of the load resistor, the output current is equal to $ I = \frac{V}{R} = \frac{8.99}{5} = 1.80A $.
+
+To calculate the rate of voltage change, $\frac{dv}{dt}$, the output waveform graphed in task 2 can be used. The portion of the waveform with a negative linear slope (after the peak), where the capacitor is discharging, is used to calculated this change of voltage ($\frac{dv}{dt}) as a result of the capacitor as it discharges. This equation can then be rearranged to solve for the capacitance, $C = \frac{I_c}{\frac{dv}{dt}} $. The below code block completes this calculation.
+
+```{python}
+# Define indices within which to calculate the slope 
+ind1 = 7887
+ind2 = 14198
+
+plt.plot(t2_9_data["X"], t2_9_data["CH2"], label="Vdd", color='tab:orange', linestyle="-")
+plt.ylabel("Vdd (V)")
+
+plt.axvline(x = t2_9_data["X"][ind1], linestyle='--', color='r', label="Lower Slope Limit")
+plt.axvline(x = t2_9_data["X"][ind2], linestyle='--', color='r', label="Lower Slope Limit")
+plt.title("Vdd Output with Capacitor Discharge Bounds")
+
+# Calculate the rate of change of voltage
+Vdd_diff = np.gradient(t2_9_data["CH2"][ind1:ind2], t2_9_data["X"][ind1:ind2])
+slope = Vdd_diff.mean()
+
+I_c = 1.80
+capacitance = I_c / slope
+print(f"Capacitance of the output capacitor with a 9V output: {capacitance} F")
+```
+
+As shown above, the calculated output capacitance is $32.6\mu F$ with the 9V output (taking the absolute value given the capacitor is discharging, resulting in a negative slope). The same calculation can be repeated for the 4V and 7V outputs.
+
+```{python}
+ind1 = 6927
+ind2 = 11841
+
+Vdd_7_diff = np.gradient(t2_7_data["CH2"][ind1:ind2], t2_7_data["X"][ind1:ind2])
+slope_7 = Vdd_7_diff.mean()
+
+I_c_7 = 7.11 / 5
+
+capacitance_7 = I_c_7 / slope_7
+print(f"Capacitance of the output capacitor with a 7V output: {capacitance_7} F")
+
+ind1 = 6537
+ind2 = 11446
+
+Vdd_4_diff = np.gradient(t2_4_data["CH2"][ind1:ind2], t2_4_data["X"][ind1:ind2])
+slope_4 = Vdd_4_diff.mean()
+
+I_c_4 = 4.01 / 5
+
+capacitance_4 = I_c_4 / slope_4
+print(f"Capacitance of the output capacitor with a 4V output: {capacitance_4} F")
+```
+
+Similarly, the 7V output results in a $37.2 \mu C$ capacitance, and the 4V output results in a $43.6 \mu C$ capacitance. Notably, these are all less than the actual value of the output capacitance, $88 \mu F$$ (given there are 4 $22 \mu F$ capacitors in parallel). This is likely due to our simplifying calculations not taking into account the parasitic capacitance of the transformer and other components and other intricacies of using real-world, non-ideal components throughout the converter.
+
