@@ -1,0 +1,488 @@
+---
+title: Lab 7 Report
+jupyter: python3
+---
+
+## Carter Harris
+---
+
+## Pre-Lab Writeup
+
+The objective of this lab is to design two RC snubbers and an RCD clamp to attenuate the voltage spikes and oscillations caused by parasitic capacitances and inductances in the flyback converter. First, we'll start by choosing components for the snubbers - one for the high-frequency ringing that occurs at FET turn off, and one for the low-frequency ringing that occurs at diode turn off in discontinuous conduction mode (DCM).
+
+For the below calculations, we each completed all calculations and compared answers before the lab to ensure correctness.
+
+#### High-Frequency Ringing
+
+**NOTE:** I believe the ideas behind my high-frequency ringing calculations are wrong, the specifics of which are described in detail in question 12. However, I have left the pre-lab calculations the same to explain my initial design choices and the formulas that go into calculations. These formulas are correct, even if some of the values plugged in are wrong.
+
+From the experimentally collected data in Lab 6, we know that the frequency, $\omega_d$ of the high-frequency ringing is about 75.5 rad/s at the required 20W output. Further, the requirements provided in the lab specify a zeta damping ratio of $\zeta = 0.7$. Further, the high-frequency ringing is an artifact of the leakage inductance of the flyback converter's transformer discharging. The leakage inductance of our transformer manufactured in lab 6 is equal to $0.64 \mu H$.
+
+![LCR meter showing measured leakage inductance](images/leakage.jpg)
+
+Given the previously listed known variables, a equivalent parasitic capacitance as it relates to the high-frequency ringing is defined through the following equation: $$ \omega_d = \frac{1}{\sqrt{LC}} $$ where each parameter is defined above. Rearranged to solve for the capacitance, given this is our unknown value, the equation is equal to $C = \frac{1}{L} \cdot (\frac{1}{\omega_d})^2$. Substituting in all of our known values results in a capacitance of $C = \frac{1}{0.64e\text{-}6} \cdot (\frac{1}{75.7e6})^2 = 273pF$.
+
+A general design rule for flyback RC snubbers stipulates that the capacitor used in an RC snubber, $C_{SB}$, should be 3 times the equivalent parasitic capacitance as calculated above. As such, $C_{SB} = 818pF$. Given the component selection provided to us for this lab, our group decided to round down slightly and use a $680pF$ capacitor.
+
+Next is calculating the companion resistor for the RC snubber. This calculation is where the $\zeta$ damping ratio comes into play. All the above quantities are related through the formula $\zeta = \frac{R_{SB}}{2}\sqrt{C_{SB}}{L} $, or rearranged to solve for the snubber resistance, $ R_{SB} = 2 \cdot \zeta \cdot (\frac{C_{SB}}{L})^{-\frac{1}{2}} $. Substituting in the known and previously calculated values results in $ R_{SB} = 2 \cdot 0.7 \cdot (\frac{680e\text{-}12}{0.63e\text{-}6})^{-\frac{1}{2}} = 42.95 \Omega $. The closest provided resistors are $33 \Omega$ and $62 \Omega$: given we rounded down for our $C_{SB}$ value, we rounded up for the resistor and chose a $62 \Omega$ resistor.
+
+#### Low-Frequency Ringing
+The exact same math provides the ideal capacitor and resistor values to attenuate the diode turn-off low frequency ringing. This ringing was found experimentally in Lab 6 to oscillate at a frequency of 7.13 rad/s. However, given this ringing is related to the magnetizing inductance of the flyback's transformer, this value was instead using in both calculations. For the transformer we fabricated in Lab 6, the measured magnetizing inductance was $19.1 \mu H$. 
+
+$ C = \frac{1}{19.1e\text{-}6} \cdot (\frac{1}{7.16e6})^2 = 1.03 nF $. Following the same 3X rule, $C_{SB} = 3.09 nF$. This value proved to be quite close to the provided $3.3nF$ capacitor, which we chose to use.
+
+$ R_{SB} = 2 \cdot 0.3 \cdot (\frac{3.3e\text{-}9}{19.1e\text{-}6})^{-\frac{1}{2}} = 107 \Omega$. This value also was close to a provided resistor, $100 \Omega$.
+
+In conclusion, for our two RC snubbers, are component selections were:
+- High Frequency ($\omega_d = 75.7e6 rad/s$)
+    - Capacitance: $680pF$
+    - Resistance: $62 \Omega$
+- Low Frequency ($\omega_d = 7.13e6 rad/s$)
+    - Capacitance: $3.3nF$
+    - Resistance: $100 \Omega$
+
+#### Clamp
+Next, we chose components for the RCD Clamp, which serves to reduce the peak voltages seen in the post-FET turn-off ringing. This attenuation serves to ensure the maximum allowable source-to-drain voltage of the FET is not exceeded.
+
+The specifications in the lab required that the drain voltage shall remain low enough such that a 60V-rated MOSFET is sufficient for the converter.
+
+The first calculation is determining the clamp voltage, $V_{cp}$. The clamp voltage is defined as a function of the input voltage and the max drain-to-source voltage allowable such that $V_{cp} = V_{dmax} - V{g}$, where $V_g$ is the input voltage. Given our flyback converter works with an 18V input and we have a 60V maximum, the clamp voltage should equal 42 volts. This voltage determines the clamping ratio, defined as a ratio between the clamping voltage and representative output voltage (based on the actual output voltage and the turns ratio, a): $K_{cp} = \frac{V_{cp}}{V}$. Given our $10V_o$ desired output and 0.77 turns ratio, the representative output voltage is $ V = \frac{1}{a} \cdot V_o = \frac{1}{0.77} \cdot 10 = 12.99$ volts. Combining this with our above-calculated clamp voltage results in a clamp voltage ratio of $ K_{cp} = \frac{42}{12.99} = 3.23$.
+
+Given the clamp voltage, the average power dissipation required of the clamp is calculated. This quantity is defined by the formula: $$ <P_{cp}> = \frac{1}{2T_s} \cdot i_{pk}^2 \cdot (L_{\sigma 1} + L_{\sigma 2}') \cdot \frac{1}{1 - \frac{1}{K_{cp}}} $$ $T_s$ is the switching period, defined as $20 \mu S$ based upon the 50 KHz switching frequency. i_{pk} is the peak voltage, calculated in Lab 6 to be 6.33A at the required operating conditions. Finally, $(L_{\sigma 1} + L_{\sigma 2}')$ is the sum of the leakage inductances of the transformer. As previously stated, this sum was measured as $ 0.64 \mu H$. Substituting and solving with all known values, $ < P_{cp} > = \frac{1}{2 \cdot 20e\text{-}6} \cdot 6.33^2 \cdot 0.63e\text{-}6 \cdot \frac{1}{1 - \frac{1}{3.23}} = 0.93 W $. Although close, this is below the 1W max dissipation of the provided resistors, and it is thus possible to construct the clamp with the provided materials and voltage.
+
+From the average power dissipated, the necessary resistor can be determined. The ideal resistance of the clamp is defined such that $ R_{cp} = \frac{V_{cp}^2}{< P_{cp} >}$. Plugging in all calculated values, $ R_{cp} = \frac{42^2}{0.93} = 1897 \Omega$. We chose to use a slightly larger resistor at $2.2 k\Omega$.
+
+Finally, the last component to select is the clamp capacitor. The choice of clamp capacitor is guided by the equation $$ C_{cp} = \frac{1}{\delta \cdot R_{cp}} \cdot (T_s - i_{pk} \cdot \frac{L_{\sigma 1} + L_{\sigma 2}'}{V_{cp} - V}) $$ All variables listed have been previously calculated, with the exception of $\delta$, which is the allowable relative voltage ripple. Based on the best practices and specifications provided, we chose an allowable relative ripple of 15% ($\delta  = 0.15$). Solving for the capacitance results in: $C_{cp} = \frac{1}{0.15 \cdot 2200} \cdot (20e\text{-}6 - 6.33 \cdot \frac{0.64e\text{-}6}{42 - 12.99}) = 60.2 nF $. Based upon the provided components, we chose a $62 nF$ capacitor.
+
+Only a single ultra-fast diode type was provided, the BYV27-100-TAP.
+
+In summary, for our clamp components, we chose:
+- A $2.2 k\Omega$ resistor
+- A $68 nF$ capacitor
+- A BYV27-100-TAP diode
+
+---
+
+
+## Lab Execution
+
+### Baseline Measurements
+
+#### Q1: Make note of output voltage $V_{obl}$
+- $V_o$/$V_{obl}$ is exactly 10V.
+- $V_d$ max is 86V.
+
+The lab hardware setup is shown in the image below.
+
+![Baseline lab hardware setup](images/baseline.jpg)
+
+#### Q2: Capture the shunt current a $V_d$ measurements for both the fast and slow oscillations.
+
+Graphs are shown below for both the entire waveform and the fast and slow oscillations more closely.
+
+```{python}
+from rigol import read_rigol_csv
+from matplotlib import pyplot as plt
+import pandas as pd
+
+# Plot Entire Waveform
+[bl_wv_data, _, _] = read_rigol_csv("data/base.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(bl_wv_data["X"], bl_wv_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(3e-5, 6.3e-5)
+ax2 = ax1.twinx()
+ax2.plot(bl_wv_data["X"], bl_wv_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Baseline Flyback Voltage over Time")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+
+# Plot high-frequency oscillations
+plt.figure()
+plt.subplot(2, 1, 1)
+[bl_hi_data, _, _] = read_rigol_csv("data/base_hi.csv")
+
+plt.plot(bl_hi_data["X"], bl_hi_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Drain Voltage High-Frequency Oscillations")
+
+# Plot low-frequency oscillations
+plt.subplot(2, 1, 2)
+[bl_lo_data, _, _] = read_rigol_csv("data/base_lo.csv")
+
+plt.plot(bl_lo_data["X"], bl_lo_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Drain Voltage Low-Frequency Oscillations")
+plt.tight_layout()
+```
+
+### RC Snubber Testing
+
+After baselines were established, we began by testing our two RC snubbers with the above-calculated values.
+
+We began first with the high-frequency snubber, the output for which is shown below at the same 10V output.
+
+#### Q3: Capture the shunt voltage and drain voltage measurements for the high-frequency snubber.
+
+```{python}
+# Plot Entire Waveform
+[sb_wv_data, _, _] = read_rigol_csv("data/snub_hi_zo.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(sb_wv_data["X"], sb_wv_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+plt.xlim(3e-5, 6.3e-5)
+ax2 = ax1.twinx()
+ax2.plot(sb_wv_data["X"], sb_wv_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("High-Frequency Snubber Flyback Voltage over Time")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+
+# Plot high-frequency oscillations
+plt.figure()
+[sb_hi_data, _, _] = read_rigol_csv("data/snub_hi.csv")
+
+plt.plot(sb_hi_data["X"], sb_hi_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Snubbed Drain Voltage High-Frequency Oscillations")
+```
+
+We then completed the same test for the low-frequency snubber.
+
+#### Q4: Capture the shunt voltage and $V_d$ measurements for the low-frequency snubber
+
+```{python}
+# Plot Entire Waveform
+[sb_wv_lo_data, _, _] = read_rigol_csv("data/snub_lo2z.csv")
+sb_wv_lo_data["CH1"] = sb_wv_lo_data["CH1"].rolling(10).mean()
+sb_wv_lo_data["CH2"] = sb_wv_lo_data["CH2"].rolling(10).mean()
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(sb_wv_lo_data["X"], sb_wv_lo_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+#plt.xlim(-1.5e-5, 2.2e-5)
+ax2 = ax1.twinx()
+ax2.plot(sb_wv_lo_data["X"], sb_wv_lo_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Low-Frequency Snubber Flyback Voltage over Time")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='upper center')
+
+# Plot low-frequency oscillations
+plt.figure()
+[sb_lo_data, _, _] = read_rigol_csv("data/snub_lo2.csv")
+
+sb_lo_data["CH2"] = sb_lo_data["CH2"].rolling(10).mean()
+
+plt.plot(sb_lo_data["X"], sb_lo_data["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Snubbed Drain Voltage Low-Frequency Oscillations")
+plt.tight_layout()
+```
+
+---
+
+### RCD Clamp Testing
+
+Next, the snubber was removed and the clamp was installed using the components specified in the pre-lab calculations.
+
+In addition to the usual shunt voltage and drain voltage measurements, a third probe was used to measured the cathode voltage on the diode.
+
+Note that the Rigol scope was acting rather bizarrely for this measurement, and despite a couple tries, I couldn't seem to get a higher resolution on the output. Some of this difference was mitigated with the rolling mean, however, some strange noise remains.
+
+```{python}
+# Plot Entire Waveform
+[clamp_data, clamp_d0, clamp_dt] = read_rigol_csv("data/clamp2.csv")
+
+clamp_data["CH1"] = clamp_data["CH1"].rolling(10).mean()
+clamp_data["CH2"] = clamp_data["CH2"].rolling(10).mean()
+clamp_data["CH3"] = clamp_data["CH3"].rolling(10).mean()
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(clamp_data["X"], clamp_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+plt.legend
+
+ax2 = ax1.twinx()
+ax2.plot(clamp_data["X"], clamp_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+ax2.plot(clamp_data["X"], clamp_data["CH3"], label="Vcp", color='tab:pink')
+ax2.set_ylabel("Diode Voltage (V)")
+plt.legend()
+```
+
+```{python}
+[clamp_data_z, _, _] = read_rigol_csv("data/clamp2z.csv")
+plt.figure()
+
+plt.plot(clamp_data_z["X"], clamp_data_z["CH2"], label="Vdrain", color='tab:orange')
+plt.ylabel("Drain Voltage (V)")
+
+plt.title("Clamped Drain Voltage")
+#plt.xlim(3.8e-5, 1.75e-5)
+```
+
+No further measurements were collected as specified in Q8 given that we were already at a 10V output.
+
+---
+
+## Post-Lab Analysis
+
+### Baseline Measurements
+
+#### Q9: Determine the resonant frequencies and the damping ratio for both the fast and the slow ring.
+
+Based upon the scope measurements, the amplitude and timing of each oscillation was calculated by means of manual inspection of the data. The relevant points and calculations are shown in the code snippet below.
+
+```{python}
+# Plot high-frequency oscillations
+plt.figure()
+plt.subplot(2, 1, 1)
+plt.plot(bl_hi_data["X"], bl_hi_data["CH2"], label="Vdrain", color='tab:orange')
+plt.plot(bl_hi_data["X"][85], bl_hi_data["CH2"][85], marker = 'x', color = "tab:green")
+plt.plot(bl_hi_data["X"][128], bl_hi_data["CH2"][128], marker = 'x', color = "tab:green")
+plt.ylabel("Drain Voltage (V)")
+plt.title("Drain Voltage High-Frequency Oscillations")
+
+t_s_hi = bl_hi_data["X"][128] - bl_hi_data["X"][85]
+amp_ratio_hi = bl_hi_data["CH2"][85] / bl_hi_data["CH2"][128]
+
+print(f"High Frequency: {t_s_hi} period, {amp_ratio_hi} amplitude ratio")
+
+# Plot low-frequency oscillations
+plt.subplot(2, 1, 2)
+plt.plot(bl_lo_data["X"], bl_lo_data["CH2"], label="Vdrain", color='tab:orange')
+plt.plot(bl_lo_data["X"][983], bl_lo_data["CH2"][983], marker = 'x', color = "tab:green")
+plt.plot(bl_lo_data["X"][1409], bl_lo_data["CH2"][1409], marker = 'x', color = "tab:green")
+plt.ylabel("Drain Voltage (V)")
+plt.title("Drain Voltage Low-Frequency Oscillations")
+plt.tight_layout()
+
+t_s_lo = bl_lo_data["X"][1409] - bl_lo_data["X"][983]
+amp_ratio_lo = bl_lo_data["CH2"][983] / bl_lo_data["CH2"][1409]
+
+print(f"Low Frequency: {t_s_lo} period, {amp_ratio_lo} amplitude ratio")
+```
+
+The period can be converted to the resonant frequency as defined by $ \omega_d = \frac{2\pi}{T_s}$. For each of our waveforms:
+- High Frequency: $ \omega_d = \frac{2\pi}{8.60e-8} = 73.1e6\text{ }rad/s $
+- Low Frequency: $ \omega_d = \frac{2\pi}{8.52e-7} = 7.37e6\text{ }rad/s $
+
+The amplitude ratio can be used to calculate the damping ratio by means of the equation $$ \zeta = \frac{\delta}{\sqrt{4\pi^2 + \delta^2}} $$ where $\delta$ is defined based on the amplitude ratio such that $$ \delta = \frac{1}{n} \ln{\frac{x_1}{x_{n + 1}}} $$ where n = 1. Substituting in our known values:
+- High Frequency:
+    - $ \delta = \ln{1.25} = 0.223 $
+    - $ \zeta = \frac{0.223}{\sqrt{4\pi^2 + 0.223^2}} = 0.0354 $
+- Low Frequency:
+    - $ \delta = \ln{1.03} = 0.0296 $
+    - $ \zeta = \frac{0.0296}{\sqrt{4\pi^2 + 0.0296^2}} = 0.0047 $
+
+#### Q10: Confirm your prep work estimates for the LCR values.
+
+**High Frequency**
+
+For the high frequency snubber, we assumed the leakage inductance of $0.64 \mu H$. We chose a snubber capacitor that was $680pF$, which was 3 times the parasitic capacitance, so about $227pF$. Together, these values result in an estimated resonant frequency of $\omega_d = \frac{1}{\sqrt{LC}} = \frac{1}{\sqrt{0.63e-6 \cdot 227e-12}} = 82.9e6 rad/s$. Given the limited component selection provided, this resulted in a resonant frequency error of 13% compared to the true measured value of $73.1e6 rad/s$.
+
+**Low Frequency**
+
+For the low frequency snubber, we assumed the magnetizing inductance of $19.4 \mu H$. We chose a snubber capacitor $3.3nF$, so based on the 3x rule, our approximate parasitic capacitance of interest is $1.1nF$. Together, these values result in an estimated resonant frequency of $ \omega_d = \frac{1}{\sqrt{19.4e-6 \cdot 1.1e-9}} = 6.85e6 rad/s$. Also given the limited component selection provided, this combination results in an error on calculating the resonant frequency of 7% when compared to the true measured resonant frequency of $7.37e6 rad/s$.
+
+
+#### Q11: How do the resonant frequencies of the fast and slow ring compare? What does the ratio of the two frequencies correspond to?
+The high-frequency ringing is almost exactly 10 times faster than that of the slow ringing - 9.9 to be exact. 
+
+The resonant frequencies are defined by the formula $\omega_d = \frac{1}{\sqrt{LC}}$. Given that the parasitic capacitance is equivalent throughout the circuit (which was not correctly assumed in pre-lab calculations - see detailed analysis in question 12 below), this really represents a ratio of the root of the magnetizing and leakage inductances such that: $$\frac{\omega_{d HF}}{\omega_{d LF}} = \frac{\sqrt{L_m}}{\sqrt{{L_{\sigma 1} + L_{\sigma 2}}}} $$
+
+Using the known value of the magnetizing inductance ($19.4 \mu H$) and the (also corrected in question 12, $0.17 \mu H$) value of the leakage inductance, this ratio comes out to about 10.7 - fairly close to our measured ratio representing an error of about 7%.
+
+#### Q12: Analyze the performance of your fast RC snubber.
+
+Following the same process highlighted in question 9 to determine the resonant frequencies and damping ratio:
+
+```{python}
+plt.figure()
+plt.plot(sb_hi_data["X"], sb_hi_data["CH2"], label="Vdrain", color='tab:orange')
+plt.plot(sb_hi_data["X"][67], sb_hi_data["CH2"][67], marker = 'x', color = "tab:green")
+plt.plot(sb_hi_data["X"][109], sb_hi_data["CH2"][109], marker = 'x', color = "tab:green")
+plt.ylabel("Drain Voltage (V)")
+plt.title("Snubbed Drain Voltage High-Frequency Oscillations")
+
+t_s_sb_hi = sb_hi_data["X"][109] - sb_hi_data["X"][67]
+amp_ratio_sb_hi = sb_hi_data["CH2"][67] / sb_hi_data["CH2"][109]
+
+print(f"High Frequency Snubbing: {t_s_sb_hi} period, {amp_ratio_sb_hi} amplitude ratio")
+```
+
+- **Resonant Frequency:** $ \omega_d = \frac{2\pi}{8.40e-8} = 74.8e6\text{ }rad/s$ 
+- **Damping Ratio:**
+    - $ \delta = \ln{1.84} = 0.610 $
+    - $ \zeta = \frac{0.610}{\sqrt{4\pi^2 + 0.610^2}} = 0.0966 $
+
+Overall, this configuration results in a zeta that is significantly lower than the zeta we designed for: approximately 0.1 instead of 0.7. Interesting, this value is almost exactly one order of magnitude smaller than the zeta we should have expected - about 1.02 - if you calculate backwards using the component values we rounded to. This was suprising given the high-frequency snubber worked well in my PLECS simulation, shown below with the original parameters. However, given I'm manually including a capacitor to account for the parasitic capacitance, it makes sense that this configuration would work well given that I'm setting the parasitic capacitance and inductance to exactly what this snubber would preform well for.
+
+![PLECS high-frequency snubber](images/plecs_high-freq.png)
+
+In comparing with other lab groups, I believe that we were incorrect in assuming that we should be using different capacitors for the low and high frequency snubbers. The parasitic capacitances - theoretically - should be the same for both given this is the same circuit. Given the snubber capacitor is a direct 3x relation to the parasitic capacitance, this value shouldn't change for either snubber. Other lab groups used the calculated parasitic (and subsequently snubber) capacitance calculated in their low frequency snubber for the high-frequency snubber. This calculation for the low-frequency snubber is more accurate given that we know at low frequencies the magnetizing inductance is the main quantity in play that we are concerned with and can use that and the $\omega_d$ equation to calculate an accurate parasitic capacitance. In translating this calculation to our high-frequency snubber, given that we know the parasitic capacitance of the circuit, we can then instead calculate the leakage inductance. We assumed that the leakage inductance was the know quantity, rather than the parasitic capacitance. Rather, this should be the other way around. While we did measure the leakage inductance with the LCR meter, in talking with other lab groups and the CAs, this measurement isn't necessarily valid at the higher frequencies we are interested in snubbing.
+
+By assuming the same $~1.1nF$ parasitic capacitance and calculating an equivalent leakage inductance of $0.17 \mu H$ (which is about 1/3 of our measured value used in prior calculations) using our known natural frequency calculated above. We can then calculate a snubber resistance of about $10 \Omega$. While we were not able to validate this on the lab hardware due to time constraints, the performance results seem much more promising in a PLECS model with the correct parasitic capacitance:
+
+![PLECS corrected high-frequency snubber](images/plecs_high-freq_fixed.png)
+
+
+
+
+#### Q13: Analyze the performance of your slow RC snubber
+Given the much greater damping and the limited number of peaks for the low-frequency snubber, the damping ratio can instead be calculated based on the percentage overshoot, $M_p$, as defined in the formula $$ \zeta = \frac{-\ln{M_p}}{\sqrt{\pi^2 + \ln^2{M_p}}} $$ $M_p$ is defined such that it is the difference between the steady state value and value of the first trough divided by the total difference between the steady state and the pre-oscillation value.
+
+```{python}
+plt.figure()
+plt.plot(sb_lo_data["X"], sb_lo_data["CH2"], label="Vdrain", color='tab:orange')
+plt.plot(sb_lo_data["X"][2231], sb_lo_data["CH2"][2231], marker = 'x', color = "tab:green")
+plt.plot(sb_lo_data["X"][3550], sb_lo_data["CH2"][3550], marker = 'x', color = "tab:green")
+plt.plot(sb_lo_data["X"][1800], sb_lo_data["CH2"][1800], marker = 'x', color = "tab:green")
+plt.ylabel("Drain Voltage (V)")
+plt.title("Snubbed Drain Voltage Low-Frequency Oscillations")
+
+# second valley = 3057
+
+Mp = (sb_lo_data["CH2"][3550] - sb_lo_data["CH2"][2231]) / (sb_lo_data["CH2"][1800] - sb_lo_data["CH2"][3550])
+
+t_s_sb_lo = (sb_lo_data["X"][2630] - sb_lo_data["X"][2231]) * 2
+#amp_ratio_sb_lo = abs(sb_lo_data["CH2"][2231] / sb_lo_data["CH2"][3057])
+
+print(f"Low Frequency Snubbing: {t_s_sb_lo * 2} period, {Mp} overshoot percentage")
+```
+
+Plugging in the overshoot percentage $M_p$ results in: $ \zeta = \frac{-\ln{0.393}}{\sqrt{\pi^2 + \ln^2{0.393}}} = 0.285 $
+
+While the low frequency snubber performed significantly better than our high frequency snubber, it still fell quite short compared to our target value. Calculated back based on our rounded component values, we should have been expected a zeta value close to 0.65. Interestingly, ours performed quite close to half of that value. I've chatted with a CA extensively at the office hours I was able to go to and have thus far not been able to pinpoint a direct cause for this underperformance.
+
+### RCD Clamp
+
+#### Q14a: Using the D6 cathode measurement, and considering the input voltage, plot the voltage of C16 for both $V_o = V_{obl}$ and $V_o = 10V$.
+
+**Note:** our $V_{obl} = 10V$, so only one set of calculation was included below.
+
+Given the negative terminal of the capacitor C16 is referenced to the 18V input, 18 can be subtracted from our measurement at the diode cathode, which is referenced to ground, to find the voltage across the capacitor.
+
+```{python}
+clamp_data["Vc"] = clamp_data["CH3"] - 18
+
+plt.figure()
+plt.plot(clamp_data["X"], clamp_data["Vc"])
+plt.title("Clamp Capacitor Voltage")
+plt.ylabel("Volts (V)")
+```
+
+#### Q14b: Determine the turn-on and turn-off events of the diode D6
+Theoretically, the diode should turn on when the drain voltage becomes larger than the sum of the diode forward voltage (1.07 according to the datasheet of our BYV27-100-TAP transistor) and the capacitor voltage, as this is when the potential would flow through the diode in the correct direction. This situations occurs when the FET turns off and the energy stored as the leakage inductance must be discharged.
+
+The measurement points where this equality is satisfied are shown below. The orange line's presence represents when the diode is on (the orange line is placed arbitrarily at the diode cathode's minimum value - it is simply a boolean on/off as calculated in my code).
+
+```{python}
+# ignore some pandas deprication warnings
+import warnings
+warnings.filterwarnings('ignore')
+
+plt.figure()
+
+print(clamp_dt)
+
+clamp_data["on"] = clamp_data["CH2"] > (clamp_data["Vc"] + 1.07)
+
+# Code to plot only the "on" points of the diode
+for index, i in enumerate(clamp_data["on"]):
+    if i != 0:
+    #    clamp_data["on"][index] = None
+    #else:
+        clamp_data["on"][index] = clamp_data["Vc"].min()
+
+
+plt.xlim([3.1e-5, 6e-5])
+plt.ylim([15, 40])
+
+plt.plot(clamp_data["X"], clamp_data["Vc"], label = "Clamp Voltage")
+plt.plot(clamp_data["X"], clamp_data["on"], label = "Diode On")
+plt.legend()
+plt.title("Clamp Capacitor Voltage & Diode State")
+plt.ylabel("Volts (V)")
+```
+
+Pardon the Pandas-realted warnings above. I couldn't figure out how to 
+
+#### Q14c: Determine the peak and ripple of the C16 voltage
+
+Ignoring the peak transients after the clamp diode first turns on (which peak at $37.64V$), the peak clamp voltage $V_{cp}$ is about 32.7V by manual inpsection of the waveform. 
+
+Meanwhile, the minimum value before the diode turns back on is about $17.4V$. This represents a $\Delta V_{cp}$ of $15.3V$. Dividing this by the peak $V_{cp}$ results in a relative voltage ripple of 46.7%, which is much higher than what we designed for at around 15%.
+
+Unfortunetly, I did not have the time to fully explore the reasoning behind why this ripple was so much larger than expected. Despite the large ripple, the drain voltage did still remain within the allowable limits. For further improvement, a larger capacitor value could be chosen to reduce this ripple further. It is possible that the decreasing capacitance of ceramic capacitors at higher voltages as disussed in class could have contributed to us actually having a lower capacitor value than we designed for.
+
+```{python}
+print(f"Peak C16 voltage: {clamp_data['Vc'].max()}")
+print(f"Minimum C16 voltage: {clamp_data['Vc'].min()}")
+```
+
+#### Q14d: How much average power is dissipated by the RCD clamp?
+As defined in the pre-lab calculations, the average power dissipated by the clamp is defined such that $$ <P_{cp}> = \frac{V_{cp}^2}{R_{cp}} $$. If we use the peak clamp voltage for our $V_{cp}$ value and our known resistor value, the resulting average power is $ < P_{cp} > = \frac{37.64^2}{2200} = 0.64W$. This power level is considerably lower than the pre-lab estimate of 0.93W.
+
+
+#### Q14e: Determine the differential capacitance of C16 based on the C16 voltage measurement.
+
+Once discharging, the capacitor/resistor combo decays with a time constant equal to the product of RC, the clamp resistance and capacitance. By plotting an exponetial curve to $V_cp$, this time constant $\tau$ can be extracted, after which the known $R_{cp}$ of $2.2k\Omega$ can be used to calculate the capacitance. 
+
+```{python}
+import numpy as np
+from scipy.optimize import curve_fit
+pd.set_option('display.max_rows', None)
+
+charge_x = clamp_data["X"][4651:8638]
+charge_y = clamp_data["Vc"][4651:8638]
+
+exp_decay = lambda x, A, t, y0, x0: A * np.exp((x-x0) / -t) + y0
+params, _ = curve_fit(exp_decay, charge_x, charge_y, p0=[70, 5e-5, 18 ,-2e-5], bounds = ([0, 1e-6, 10,-5e-5],[100, 1e-4, 25, 5.-1e-5]))
+
+cap = params[1] / 2200
+print(cap)
+```
+
+This math results in a capacitance of $7.97nF$. This calculated value is off from the true value used, $68nF$, by a factor of roughly 10. I suspect this error comes from the method of curve fitting (it was extremly finicky trying to get an exponetial curve fit on the data) rather than from real-world inaccuracies in the measurements or electrical-related behavior. Unfortunetly, for the sake of getting this report in on-time, I wasn't able to explore this phenomeon further.
+
+#### Q14F: Do the waveforms match your digital twin?
+
+PLECS scope outputs for the performance of each of the 3 protection configurations are shown below.
+
+The clamp was installed for both the snubber measurements.
+
+![PLECS baseline](images/14f_plecs_baseline.png)
+
+The baseline measurement looks the mostly different in the PLECS model, with a rather strange triangular shape and much less natural damping of the high-frequency oscillations after FET turn-off. Also notable is the significantly higher peak drain voltage seen in the PLECS model - almost double that of the real-world measurements.
+
+![PLECS high](images/14f_plecs_hi.png)
+![PLECS low](images/14f_plecs_lo.png)
+
+The snubber performance of the PLECS model more or less matches the actual, real-world performance of the snubber hardware.
+
+With the snubber installed, the peak drain voltage still does remain higher in the PLECS model, suggesting that my approximated leakage inductance still could be too high.
+
