@@ -1,0 +1,249 @@
+---
+title: Lab 8 Report
+jupyter: python3
+---
+
+
+## Carter Harris
+
+---
+
+
+## Pre-Lab Calculations
+
+Given a flyback converter with the following specifications as designed in Labs 6 and 7,
+- Input voltage $V_g = 18V$
+- Output voltage $V_o = 10V$
+- Output power $P_{out} = 20W$
+- Switching frequency $f_s = 50 kHz$
+- Duty cycle $D = 35%$
+- $\alpha = 70%$
+- Properly speced RCD clamp and high-frequency RC snubber (for FET turn-off ripple)
+
+Calculate preliminary loss distribution in the form of a pie chart.
+
+Given the construction of a flyback converter, loss originates from each of the following sources:
+- Lossy components (ie, the shunt resistor)
+- Inductor losses, including:
+    - Core losses (eddy currents and hysteretic losses)
+    - Winding conduction losses
+- FET losses, including:
+    - Turn-on loss
+    - Turn-off loss
+    - Conduction loss
+- Diode losses
+    - Turn-on/off losses
+    - Conduction loss
+- Snubber loss
+- Clamp loss
+
+Each of these losses are explored below.
+
+### Lossy Components
+Principally in this category is the shunt resistor used for current measurement. The approximate power dissipation of this resistor can be found by means of the root-mean squared (RMS) voltage and current across the resistor.
+
+Drawing from the shunt voltage measurements in Lab 7, the shunt voltage follows a saw-tooth pattern when the FET is on. The RMS voltage of a sawtooth wave is defined such that $ V_{RMS} = \frac{V_{pk}}{\sqrt{3}}$. From lab 7, the observed peak voltage at the given operating conditions is 0.36V. As such, the RMS voltage across the shunt resistor is $ V_{RMS} = \frac{0.36}{\sqrt{3}} = 0.21V $. Further, given the $0.05 \Omega$ resistance of the shunt resistor, the RMS current through the shunt resistor is calculated via Ohm's Law such that $ I_{RMS} = \frac{0.21 V}{0.05 \Omega} = 4.16A $. Of course, over the entire period, the RMS current would be substantially smaller given that the FET is only on for 35% of the period. However, this calculation is useful in calculating overall power loss for the entire period by only considering the part of the period where loss is occuring.
+
+ From these values, power can be calculated such that $ P = V_{RMS} \cdot I_{RMS} = 0.21 \cdot 4.16 = 0.86W $. This accounts for the primary shunt resistor that is used to control the UC2844 and has dictated many of our measurements and calculations in prior labs.
+
+ However, there is also a secondary shunt resistor included in the circuit: R18, which measured the output current. Given we have a known output voltage of 10V and an output resistance of $5 \Omega$, the output current can be calculated to a constant 2A. Next, given the $0.05\Omega$ resistance of this shunt resistor, the voltage drop across it is equal to 0.1V. Combining these together results in the power loss of this secondary shunt resistor such that $ P_{loss} = 0.1V \cdot 2A = 0.2W$.
+
+These are the main lossy components in the circuit and together account for approximently 1.06W of lost power.
+
+### FET Losses
+
+FET losses can originate from three main sources, each of which will be individually addressed below.
+
+#### Turn-on losses
+
+Turn-on losses occur when the FET switches on and briefly enters the active, saturated region. In this region, the MOSFET acts like a current source, will results in significant power loss.
+
+However, in discontinous conduction mode, there is zero current at FET turn-on. As such, these losses can be ommitted.
+
+#### Turn-off losses
+
+The same ommission can not be made for turn-off losses when there is substantial drain current on through the FET. This behavior is illustrated graphically below (taken from the 4/7 Switching Losses notes):
+
+![FET switching losses graph](images/fet_switching.png)
+
+Although this graph highlights the turn-on characteristics, the same behavior is seen in reverse for the turn-off.
+
+In this stage, the gate-to-source voltage plateaus (this plateau is called the Miller plateau) at a value where the capacitor is in the saturated active region, as defined above. The length of this plateau is defined by the gate-to-drain and drain-to-source parasitic capacitances of the transistor. Both of these capacitances must be fully discharged before the gate voltage drops sufficently for the transistor to turn off. Thus, minimizing the amount of time the capacitor rests in this plateau - and therefore causes substatial power loss - is paramount by discharging these capacitors as quick as possible.
+
+0.8 resonable
+
+
+#### Conduction Losses
+
+Once the FET is actually on, there are additional (although substantially smaller) losses caused by the drain-to-source on resistance of the FET. This resistance value is determined by way of the [datasheet](https://www.onsemi.com/pdf/datasheet/fdp61n20-d.pdf) for the FDP61N20 FET used in this lab.
+
+Given our peak current of 7.2A (based upon a 0.37 peak shunt voltage and $0.05\Omega$ shunt resistance), Figure 3 on the datasheet defines the on resistance $R_{DS(ON)}$ as $0.025\Omega$. However, this resistance further varies with tempreature, and the transistor has been observed to get rather hot. If we assume this temperature is around $50\degree C$, Figure 8 of the datesheet (On-Resistance Variation vs. Temperature) suggests that this resistance should be scaled to $0.031\Omega$.
+
+As calculated in the lossy component section, the drain RMS current through the FET across one on-cycle (disregarding the 65% of time the transistor is off, given we are only interested in total power) is 4.16A. Combining this with the on-resistance and Ohm's Law results in a voltage drop across the FET of $ V_d = I_{RMS} \cdot 0.031 \omega = 0.144 W$ dissipated.
+
+
+### Diode Losses
+
+While the turn-on losses are significant for transistors, the turn-on losses for a diode are negligable.
+
+Most diodes do still suffer from a lossy turn-off event from the reverse recovery effect where the diode conducts in reverse to remove remaining charge in the junction. However, Schottky diodes have a negible reverse recovery effect, and the primary D7 diode used for the flyback converter is a Schottky diode. As such, this loss is also neglected.
+
+However, the diode does still have a conduction loss, which tend to be non-linear functions of the diode current. This loss is a function of the RMS current through the diode and the forward voltage of the diode. Using the $I_{RMS}$ calculated prior for the shunt resistor (2.46A), and the SB350 diode's forward voltage $740mV$ as specified in the [SB350 datasheet](https://www.onsemi.com/download/data-sheet/pdf/sb380-d.pdf), the power dissipated equals $P = 0.740 \cdot 2.46 = 1.82W$.
+
+### Transformer Losses
+
+#### Conduction Winding Losses
+
+Winding losses result from the resistance of the wire used in both primary and secondary windings and is additionally influenced by the skin effect.
+
+These losses are compartivley very small and can be safely ignored.
+
+#### Core Eddy Currents
+Given the Mn-Zn ferrite core material used has a very high resistivity, core eddy currents are negligible at our 50 kHz operation frequency.
+
+#### Core Hysteretic Losses
+
+Core Hysteretic Losses are the losses that occur as the magnetic flux density of the magnetic core (B) lags behind the applied magnetic field strength (H) creating loss equal to the area of the hysteresis loop, shown below (from the Real Magnetics lecture worksheet):
+
+![Hysteresis loop](images/loop.png)
+
+These core losses are extremly hard to measure without specialized test equipment. As such, approximations can be pulled from the core datasheet. The [datasheet for the PC95 core material](https://www.mhw-intl.com/wp-content/uploads/2018/04/TDK-PC95-Material-Specification-2018-01.pdf) used lists a core loss $P_{cv}$ (a quantity defined by the Steinmetz equation to define loss as a function of the core volume) of about $150 kW/m^3$ for our given operating conditions and temperature. Using the volume of 2.85e-6 m^2 supplied in the specific utilized [PQ20/20 core's datasheet](https://www.ferroxcube.com/upload/media/product/file/Pr_ds/PQ20_20.pdf), the approximate power loss is 0.428W.
+
+#### Clamp Losses
+
+As calculated in Lab 7, the approximate power dissipated by the clamp is 0.64W.
+
+#### RC Snubber Losses
+
+For our clamp, we utilized a $2.2k\Omega$ resistor and $68nF$ capacitor for the RC filter circuit filtering out the high-frequency oscillations. However, given the principal behind RC circuits, the amount of energy lost is half of the total energy stored in the capacitor and is not dependant on the value of the resistor. However, that resistor 
+
+---
+
+## Lab Execution
+
+### Baseline
+
+To capture baseline measurements, the input voltage is set to 18V and the output voltage to 10V. The resultant shunt and drain voltage waveforms are shown below.
+
+Given the large amount of plots necessary for this assignment, the matplotlib graphing code was consolidated into a function included inside rigol.py. This function code and documentation is included on [GitHub](https://github.com/CarterKoopa/Olin-PowerE/blob/main/Lab8/rigol.py).
+
+```{python}
+import rigol
+from matplotlib import pyplot as plt
+import pandas as pd
+
+# Plot Entire Waveform
+rigol.graph_shunt_drain("data/base2.csv", "18V baseline")
+plt.xlim(5e-5, 8.3e-5)
+```
+
+Notable on the graph above is the strange behavior of the shunt voltage observable when the FET is off. We discovered this strange interferenced caused by the scope probe wires trailing too close to the power input and output wires of the converter. Moving the scope probe wires well clear of the power input/output wires rectified this issue. While all subsequent data refelcts this change, we forgot to re-capture this scope data after rearranging the wires. However, the below-indicated power measurements and other behavior shown in the graph should still be valid.
+
+#### Q1: Confirm the converter is operating at a duty cycle of approx. 35%
+
+By inspection of the data, we find an on-time of $7.6\mu s$ across a period of $20.0\mu s$, which equates to a duty cycle of about 38%. This duty cycle was adjusted down slightly to reach 35% as precisely as possible for the following measurements.
+
+Once the current had stabilized, the input and output voltages and current were measured as detailed below:
+- Power flowing in:
+    - 17.94V input, as measured by the DMM
+    - 1.24A current input, as measured by the in-line DMM
+    - Total power in equates to $P = V \cdot I = 17.94 \cdot 1.24 = 22.25W
+- Power flowing out:
+    - 9.35V output as measured with DMM to reach 35% duty cycle as exact as possible
+    - Given a $5 \Omega$ load resistor is used, Ohm's Law dictates that the output current is 1.87A.
+    - Total power flowing out equates to $ P = 9.35 \cdot 1.87 = 17.48W
+
+#### Q2: Determine the efficency of the converter as well as the total power loss.
+Given our above-calulated input power of 22.25W and output power of 17.48W, the flyback converter is operating at an efficency of about 78.6% with a total power loss of 4.77W.
+
+
+### Reduced Input Voltage Operation
+
+Next, the voltage is decreased in 1V increments until the flyback converter reaches boundary conduction mode (BCM, where the FET turns on as soon as the diode turns off) The resulting scope measurements from each voltage level are shown below.
+
+At each step, the output voltage was tuned as close as possible to 9.35V as this was determined to be the output voltaeg closest to 10V at the original 18V input.
+
+#### Q3: Capture shunt and drain voltage for each operating point
+
+Plots for each are included below:
+
+```{python}
+rigol.graph_shunt_drain("data/red17.csv", "17V")
+plt.xlim(-3e-5, 0.5e-5)
+rigol.graph_shunt_drain("data/red16.csv", "16V")
+plt.xlim(-3.1e-5, 0.5e-5)
+rigol.graph_shunt_drain("data/red15.csv", "15V")
+plt.xlim(-3.1e-5, 0.5e-5)
+rigol.graph_shunt_drain("data/red14.csv", "14V")
+plt.xlim(-3.1e-5, 0.5e-5)
+rigol.graph_shunt_drain("data/red13.csv", "13V")
+plt.xlim(-3.1e-5, 0.5e-5)
+```
+
+At at a 13V input, we reached approximetly BCM conduction mode, and could not safely go further without increasing the current limit of our power supply past its 2A set point.
+
+At each setpoint, the input voltage, input current, and output voltage were each measured with a DMM. The efficiency of each operating point is shown below:
+- **17V Input**
+    - Input:
+        - Actual input voltage: 16.97V
+        - Actual input current: 1.313A
+        - Input power: $P = 16.97 \cdot 1.313 = 22.28W$
+    - Output:
+        - Actual output voltage: 9.35V output
+        - Actual output current (based on $5 \Omega$ resisitor): 1.87A
+        - Output power: $P = 9.35 \cdot 1.87 = 17.48W$
+    - Total efficiency: 78.5%
+    - Power loss: 4.8W
+- **16V Input**
+    - Input:
+        - Actual input voltage: 15.93V
+        - Actual input current: 1.398A
+        - Input power: $P = 15.93 \cdot 1.398 = 22.27W$
+    - Output:
+        - Actual output voltage: 9.33V output
+        - Actual output current (based on $5 \Omega$ resisitor): 1.87A
+        - Output power: $P = 9.33 \cdot 1.87 = 17.45W$
+    - Total efficiency: 78.4%
+    - Power loss: 4.8W
+- **15V Input**
+    - Input:
+        - Actual input voltage: 14.91V
+        - Actual input current: 1.500A
+        - Input power: $P = 14.91 \cdot 1.500 = 22.37W$
+    - Output:
+        - Actual output voltage: 9.35V output
+        - Actual output current (based on $5 \Omega$ resisitor): 1.87A
+        - Output power: $P = 9.35 \cdot 1.87 = 17.48W$
+    - Total efficiency: 78.1%
+    - Power loss: 4.9W
+- **14V Input**
+    - Input:
+        - Actual input voltage: 13.91V
+        - Actual input current: 1.603A
+        - Input power: $P = 13.91 \cdot 1.603 = 22.30W$
+    - Output:
+        - Actual output voltage: 9.34V output
+        - Actual output current (based on $5 \Omega$ resisitor): 1.87A
+        - Output power: $P = 9.34 \cdot 1.87 = 17.47W$
+    - Total efficiency: 78.3%
+    - Power loss: 4.8W
+- **13V Input**
+    - Input:
+        - Actual input voltage: 13.10V
+        - Actual input current: 1.701A
+        - Input power: $P = 13.1 \cdot 1.701 = 22.28W$
+    - Output:
+        - Actual output voltage: 9.35V output
+        - Actual output current (based on $5 \Omega$ resisitor): 1.87A
+        - Output power: $P = 9.35 \cdot 1.87 = 17.48W$
+    - Total efficiency: 78.5%
+    - Power loss: 4.8W
+
+### FLIR Thermal Testing
+
+Next, we used a FLIR thermal camera to photograph the flyback converter board in order to identify all heat producing components and ensure they were included in our calculated loss. The resultant photographs, along with the specific temperature of various hot components, is shown below.
+
+The entire board:
+
+![FLIR image of the entire flyback board](images/flir_board.jpg)
+

@@ -28,7 +28,17 @@ def read_rigol_csv(csv_file_name):
     return data, t0, dT
 
 
-def graph_shunt_drain(csv_file_name, v_label):
+def graph_shunt_drain(csv_file_name, v_label, xlim1=0.1e-5, xlim2=5e-5):
+    """
+    Plot flyback converter shunt and drain voltage waveforms as captured
+    in a Rigol scope csv file
+
+    Args:
+        csv_file_name: string filepath to Rigol csv export
+        v_label: string describing voltage input for plot ttile
+        x_lim: int representing left x-axis bound
+        y_lim: int representing right x-axis bound
+    """
     [scope_data, _, _] = read_rigol_csv(csv_file_name)
 
     fig, ax1 = plt.subplots()
@@ -37,7 +47,7 @@ def graph_shunt_drain(csv_file_name, v_label):
     ax1.set_xlabel("Time (s)")
     ax1.set_ylabel("Shunt Voltage (V)")
 
-    plt.xlim(5e-5, 8.3e-5)
+    # plt.xlim(xlim1, xlim2)
     ax2 = ax1.twinx()
     ax2.plot(scope_data["X"], scope_data["CH2"], label="Vdrain", color="tab:orange")
     ax2.set_ylabel("Drain Voltage (V)")
