@@ -4,6 +4,9 @@
 # Ignore PLECS autosave files
 *.plecs.autosave
 
+# Ignore vscode metadata files
+.vscode
+
 # Ignore unconverted Jupyter notebooks
 *.ipynb
 
