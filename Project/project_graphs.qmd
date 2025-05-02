@@ -1,0 +1,28 @@
+---
+jupyter: python3
+---
+
+```{python}
+from rigol import read_rigol_csv
+from matplotlib import pyplot as plt
+import pandas as pd
+
+# Plot Entire Waveform
+[bl_wv_data, _, _] = read_rigol_csv("data/shd.csv")
+
+fig, ax1 = plt.subplots()
+
+ax1.plot(bl_wv_data["X"], bl_wv_data["CH1"], label="Vsh")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Shunt Voltage (V)")
+
+#plt.xlim(3e-5, 6.3e-5)
+ax2 = ax1.twinx()
+ax2.plot(bl_wv_data["X"], bl_wv_data["CH2"], label="Vdrain", color='tab:orange')
+ax2.set_ylabel("Drain Voltage (V)")
+
+plt.title("Baseline Flyback Voltage over Time")
+lines = ax1.get_lines() + ax2.get_lines()
+ax1.legend(lines, [line.get_label() for line in lines], loc='lower right')
+```
+
